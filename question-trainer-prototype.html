@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>疑問文トレーナー — プロトタイプ</title>
+<style>
+  :root{
+    --paper:#ECEEEA; --surface:#FCFCFA; --surface2:#F4F5F1;
+    --ink:#20262B; --muted:#5A6365; --hair:#D9DCD6;
+    --t1:#B5701A; --t1bg:#F6E7C9; --t1tx:#8F570F;          /* 糸1 ochre */
+    --t2:#1C6E6A; --t2bg:#D3E7E4; --t2tx:#14534F;          /* 糸2 teal */
+    --trap:#B23A5C; --trapbg:#F6DCE2; --traptx:#8E2A47;    /* 罠 rose */
+    --l2:#6E6990; --l2bg:#E6E3F0;                          /* 第2層 */
+    --rX:#3F6E8C; --rV:#2E373B; --rY:#4E7A52; --rZ:#9A6A2E;/* parts roles */
+    --shadow:0 1px 2px rgba(32,38,43,.05),0 8px 24px rgba(32,38,43,.06);
+    --sans:"Noto Sans JP","Hiragino Kaku Gothic ProN","Yu Gothic",system-ui,-apple-system,sans-serif;
+    --mono:ui-monospace,"SF Mono",Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--paper);color:var(--ink);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:880px;margin:0 auto;padding:28px 22px 90px}
+
+  /* ---- header / wordmark ---- */
+  header{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:26px}
+  .brand{display:flex;align-items:center;gap:14px}
+  .loom{width:38px;height:38px;flex:none}
+  .eyebrow{font-size:11px;letter-spacing:2.4px;color:var(--muted);font-weight:700;text-transform:uppercase}
+  .wordmark{font-size:21px;font-weight:800;letter-spacing:-.2px;position:relative;display:inline-block}
+  .wordmark::after{content:"";position:absolute;left:0;right:0;bottom:-4px;height:3px;
+    background:linear-gradient(90deg,var(--t1) 0 50%,var(--t2) 50% 100%);border-radius:2px}
+  .phase-tag{font-size:12px;color:var(--muted);font-family:var(--mono)}
+
+  /* ---- progress rail ---- */
+  .rail{display:flex;gap:6px;margin-bottom:24px}
+  .rail span{height:4px;flex:1;background:var(--hair);border-radius:2px;transition:.3s}
+  .rail span.on{background:var(--ink)}
+
+  h2.title{font-size:18px;margin:0 0 4px}
+  p.sub{color:var(--muted);font-size:13.5px;margin:0 0 20px}
+
+  /* ---- mode toggle ---- */
+  .modes{display:flex;gap:8px;margin-bottom:20px;background:var(--surface2);padding:5px;border-radius:12px;width:max-content}
+  .modes button{border:0;background:transparent;padding:8px 18px;border-radius:9px;font:inherit;font-size:13.5px;font-weight:700;color:var(--muted);cursor:pointer}
+  .modes button.active{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+
+  /* ---- step cards ---- */
+  .steps{display:grid;gap:10px}
+  .step{display:flex;align-items:center;gap:14px;background:var(--surface);border:1.5px solid var(--hair);
+    border-radius:13px;padding:14px 16px;cursor:pointer;transition:.15s;text-align:left;font:inherit;width:100%}
+  .step:hover{border-color:#BFC3BC;transform:translateY(-1px)}
+  .step.sel{border-color:var(--ink);box-shadow:var(--shadow)}
+  .step .no{width:30px;height:30px;flex:none;border-radius:8px;display:grid;place-items:center;
+    font-weight:800;font-size:14px;background:var(--ink);color:#fff}
+  .step.sel .no{background:var(--ink)}
+  .step .body{flex:1;min-width:0}
+  .step .nm{display:block;font-weight:700;font-size:14.5px;margin-bottom:1px}
+  .step .ds{display:block;font-size:12.5px;color:var(--muted)}
+  .step .check{width:20px;height:20px;flex:none;border:2px solid var(--hair);border-radius:6px;display:grid;place-items:center}
+  .step.sel .check{background:var(--ink);border-color:var(--ink)}
+  .step.sel .check::after{content:"✓";color:#fff;font-size:13px;font-weight:800}
+  .thread-tag{font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:6px;white-space:nowrap;font-family:var(--mono)}
+  .tt1{background:var(--t1bg);color:var(--t1tx)}
+  .tt2{background:var(--t2bg);color:var(--t2tx)}
+  .ttm{background:#E7EAE6;color:var(--muted)}
+  .ttx{background:var(--trapbg);color:var(--traptx)}
+
+  /* ---- question cards ---- */
+  .qcard{background:var(--surface);border:1.5px solid var(--hair);border-radius:14px;padding:18px 18px 16px;margin-bottom:14px;box-shadow:var(--shadow)}
+  .qhead{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+  .qnum{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--muted)}
+  .pill{font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:20px;background:var(--surface2);color:var(--muted);border:1px solid var(--hair)}
+  .jp{font-size:17px;font-weight:700;margin:2px 0 13px;letter-spacing:.2px}
+  textarea{width:100%;border:1.5px solid var(--hair);border-radius:10px;padding:11px 13px;font:inherit;font-size:15px;
+    resize:vertical;min-height:48px;background:var(--surface2);color:var(--ink)}
+  textarea:focus{outline:none;border-color:var(--t2);background:#fff}
+
+  /* ---- review ---- */
+  .reveal{border-top:1px dashed var(--hair);margin-top:14px;padding-top:13px}
+  .ans-row{display:flex;gap:10px;margin-bottom:9px}
+  .ans-row .lab{font-size:11px;font-weight:800;color:var(--muted);width:64px;flex:none;padding-top:2px;letter-spacing:.5px}
+  .ans-row .val{font-size:15px;flex:1}
+  .mine{color:var(--muted)}
+  .model{font-weight:700;color:var(--ink)}
+  .answer-sentence{color:var(--t2tx);font-weight:600}
+  .nuance{background:var(--surface2);border-left:3px solid var(--t1);border-radius:0 8px 8px 0;padding:9px 12px;font-size:13px;color:#3a4347;margin:11px 0 12px}
+  .nuance b{color:var(--t1tx)}
+  .meta{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:11px}
+  .meta .m{font-family:var(--mono);font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:7px;background:#EEF0EC;color:var(--muted)}
+  .meta .m.trap{background:var(--trapbg);color:var(--traptx)}
+  .parts{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+  .plabel{font-size:11px;font-weight:800;color:var(--muted);margin-right:2px}
+  .part{display:inline-flex;align-items:baseline;gap:5px;border-radius:8px;padding:4px 9px;font-size:13px;background:var(--surface2);border:1px solid var(--hair)}
+  .part .role{font-family:var(--mono);font-size:10px;font-weight:800;padding:1px 5px;border-radius:5px;color:#fff}
+  .role.X{background:var(--rX)} .role.V{background:var(--rV)} .role.Y{background:var(--rY)} .role.Z{background:var(--rZ)}
+  .part .note{font-size:10.5px;color:var(--muted)}
+
+  /* ---- export ---- */
+  .export-box{background:var(--surface);border:1.5px solid var(--hair);border-radius:14px;padding:18px;box-shadow:var(--shadow)}
+  pre.md{background:#1c2226;color:#dfe5e2;border-radius:10px;padding:15px;font-family:var(--mono);font-size:11.5px;line-height:1.55;overflow:auto;max-height:340px;margin:0 0 14px}
+
+  /* ---- buttons / footer bar ---- */
+  .bar{position:fixed;left:0;right:0;bottom:0;background:linear-gradient(180deg,rgba(236,238,234,0),var(--paper) 24%);
+    padding:18px 22px;display:flex;justify-content:center}
+  .bar-inner{max-width:880px;width:100%;display:flex;gap:10px;align-items:center;justify-content:space-between}
+  .btn{border:0;border-radius:11px;padding:12px 22px;font:inherit;font-size:14.5px;font-weight:700;cursor:pointer;transition:.15s}
+  .btn.primary{background:var(--ink);color:#fff}
+  .btn.primary:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
+  .btn.primary:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
+  .btn.ghost{background:transparent;color:var(--muted);border:1.5px solid var(--hair)}
+  .btn.ghost:hover{border-color:#BFC3BC;color:var(--ink)}
+  .hint{font-size:12.5px;color:var(--muted)}
+  .note-1api{font-size:11.5px;color:var(--muted);font-family:var(--mono);display:flex;align-items:center;gap:7px}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--t2)}
+  .hidden{display:none}
+  @media(max-width:560px){.bar-inner{flex-direction:column;gap:10px}.note-1api{order:2}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <svg class="loom" viewBox="0 0 38 38" aria-hidden="true">
+        <g stroke="var(--t1)" stroke-width="3"><line x1="8" y1="4" x2="8" y2="34"/><line x1="16" y1="4" x2="16" y2="34"/><line x1="24" y1="4" x2="24" y2="34"/><line x1="32" y1="4" x2="32" y2="34"/></g>
+        <g stroke="var(--t2)" stroke-width="3"><line x1="4" y1="9" x2="34" y2="9"/><line x1="4" y1="17" x2="34" y2="17"/><line x1="4" y1="25" x2="34" y2="25"/><line x1="4" y1="33" x2="34" y2="33"/></g>
+      </svg>
+      <div>
+        <div class="eyebrow">English · Question Trainer</div>
+        <div class="wordmark">疑問文トレーナー</div>
+      </div>
+    </div>
+    <div class="phase-tag" id="phaseTag">01 · select</div>
+  </header>
+
+  <div class="rail" id="rail"><span class="on"></span><span></span><span></span><span></span></div>
+
+  <!-- ========== PHASE 1: SELECT ========== -->
+  <section id="p-select">
+    <h2 class="title">何を練習する？</h2>
+    <p class="sub">STEPは〈操作〉の積み上げ。総合モードでは選んだSTEPの中から完全ランダムで出題します（弱点強化用）。</p>
+    <div class="modes">
+      <button id="mStep" class="active" onclick="setMode('step')">STEP個別</button>
+      <button id="mComb" onclick="setMode('combined')">総合（複数選択）</button>
+    </div>
+    <div class="steps" id="stepList"></div>
+  </section>
+
+  <!-- ========== PHASE 2: ANSWERING ========== -->
+  <section id="p-answer" class="hidden">
+    <h2 class="title">5問を英訳しよう</h2>
+    <p class="sub">まず5問すべて自力で。模範解答は「答え合わせ」まで出ません（瞬発訓練のため）。</p>
+    <div id="answerList"></div>
+  </section>
+
+  <!-- ========== PHASE 3: REVIEW ========== -->
+  <section id="p-review" class="hidden">
+    <h2 class="title">答え合わせ</h2>
+    <p class="sub">模範解答・ポイント・構造分解（X/Y/Z/V）・糸を確認。AI添削はこの画面では行わず、MDに書き出してデスクトップClaudeへ。</p>
+    <div id="reviewList"></div>
+  </section>
+
+  <!-- ========== PHASE 4: EXPORT ========== -->
+  <section id="p-export" class="hidden">
+    <h2 class="title">MDに書き出す</h2>
+    <p class="sub">問題・自分の回答・模範解答・メタデータを同梱。これをデスクトップClaudeのProjectsに投げると、添削が安定します。</p>
+    <div class="export-box">
+      <pre class="md" id="mdPreview"></pre>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn primary" onclick="downloadMD()">MDをダウンロード</button>
+        <button class="btn ghost" onclick="copyMD()" id="copyBtn">クリップボードにコピー</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ========== FOOTER ACTION BAR ========== -->
+<div class="bar">
+  <div class="bar-inner">
+    <div class="note-1api"><span class="dot"></span>1セッション = Claude API 1コール（問題＋模範解答をセット生成）</div>
+    <div style="display:flex;gap:10px">
+      <button class="btn ghost hidden" id="backBtn" onclick="goBack()">戻る</button>
+      <button class="btn primary" id="mainBtn" disabled onclick="next()">出題する（5問）</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ================= MOCK DATA BANK ================= */
+/* 本番では §7 の生成API（claude-sonnet-4-5, 1コール）が返すJSONに置き換わる */
+const STEPDEF = {
+  1:{nm:"Yes/No 疑問文",ds:"糸1のみ・3機構を回す",thread:"糸1",tag:"tt1"},
+  2:{nm:"wh・主語を聞く",ds:"糸2のみ・糸1なし",thread:"糸2",tag:"tt2"},
+  3:{nm:"wh・主語以外を聞く",ds:"糸1 + 糸2",thread:"糸1+糸2",tag:"tt2"},
+  4:{nm:"副詞wh ＋ 答え文",ds:"when/where/why/how + 答え",thread:"糸1+糸2",tag:"tt2"},
+  5:{nm:"限定詞型・前置詞残留",ds:"Which book / Who…with?",thread:"糸1+糸2",tag:"tt2"},
+  6:{nm:"間接疑問",ds:"糸1解除・二重疑問構造",thread:"糸1解除",tag:"ttx"},
+  7:{nm:"選択・否定疑問",ds:"or B? / Don't you…?",thread:"糸1",tag:"tt1"}
+};
+const BANK = {
+  1:[
+    {scene:"寮生活",fn:"確認する",jp:"あなたは今日キッチンを使いましたか？",gap:"yesno",sense:null,thread:"糸1",
+     en:"Did you use the kitchen today?",nuance:"一般動詞 use・助動詞なし → <b>do挿入</b>（did）。挿入後の本動詞は原形 use。",
+     parts:[["V","Did use","do挿入・過去・原形"],["X","you","主語"],["X","the kitchen","目的語"],["Z","today","時の副詞"]]},
+    {scene:"道聞き",fn:"確認する",jp:"この電車は空港に行きますか？",gap:"yesno",sense:null,thread:"糸1",
+     en:"Does this train go to the airport?",nuance:"三人称単数・現在 → <b>does</b> を前出。go は原形のまま。",
+     parts:[["V","Does go","do挿入・三単現"],["X","this train","主語"],["Z","to the airport","到達点の副詞句"]]},
+    {scene:"買い物",fn:"確認する",jp:"あなたはもう昼食を食べましたか？",gap:"yesno",sense:null,thread:"糸1",
+     en:"Have you eaten lunch yet?",nuance:"<b>既存助動詞 have</b> があるので、それを前出（×do）。完了の yet は文末。",
+     parts:[["V","Have eaten","現在完了・have前出"],["X","you","主語"],["X","lunch","目的語"],["Z","yet","完了の副詞"]]}
+  ],
+  2:[
+    {scene:"雑談",fn:"情報を得る",jp:"昨日、誰がこの料理を作ったのですか？",gap:"subject",sense:null,thread:"糸2",
+     en:"Who cooked this dish yesterday?",nuance:"主語を問うwhは<b>糸1なし</b>。時制は裸動詞の活用 cooked に乗る（×did cook）。",
+     parts:[["X","Who","主語を問うwh"],["V","cooked","過去・裸動詞"],["X","this dish","目的語"],["Z","yesterday","時の副詞"]]},
+    {scene:"教室",fn:"情報を得る",jp:"何がそんなに面白いのですか？",gap:"subject",sense:null,thread:"糸2",
+     en:"What is so funny?",nuance:"主語Whatに be が続く。be は本動詞なので語順そのまま、糸1の助動詞挿入なし。",
+     parts:[["X","What","主語を問うwh"],["V","is","be・現在"],["Z","so funny","補語的な様態"]]}
+  ],
+  3:[
+    {scene:"買い物",fn:"情報を得る",jp:"あなたは昨日どこでそのカバンを買いましたか？",gap:"where",sense:"point",thread:"糸1+糸2",
+     en:"Where did you buy the bag yesterday?",nuance:"<b>糸2</b>で Where を前出し、<b>糸1</b>の do挿入(did)。挿入後の本動詞は原形 buy。",
+     parts:[["Z","Where","場所を問うwh"],["V","did buy","do挿入・原形"],["X","you","主語"],["X","the bag","目的語"],["Z","yesterday","時の副詞"]]},
+    {scene:"道聞き",fn:"情報を得る",jp:"次のバスはいつ出発しますか？",gap:"when",sense:"point",thread:"糸1+糸2",
+     en:"When does the next bus leave?",nuance:"When を前出し、三単現の does を挿入。leave は原形。",
+     parts:[["Z","When","時を問うwh"],["V","does leave","do挿入・三単現"],["X","the next bus","主語"]]}
+  ],
+  4:[
+    {scene:"自己と将来",fn:"理由・目的を問う",jp:"なぜ（何のために）あなたは海外で働くことを選んだのですか？",gap:"why",sense:"purpose",thread:"糸1+糸2",
+     en:"Why did you choose to work abroad?",nuance:"why は<b>目的(purpose)</b>を狙う出題。答えは to不定詞で意図を述べる。",
+     answer:"To find what I really want to do.",
+     parts:[["Z","Why","理由/目的を問うwh"],["V","did choose","do挿入・原形"],["X","you","主語"],["X","to work abroad","目的語(to不定詞)"]]},
+    {scene:"道聞き",fn:"方法を問う",jp:"駅まではどうやって行けばいいですか？",gap:"how",sense:"means",thread:"糸1+糸2",
+     en:"How do I get to the station?",nuance:"how は<b>手段(means)</b>。道案内の答えは命令文になりやすい。",
+     answer:"Go straight and turn left at the corner.",
+     parts:[["Z","How","手段を問うwh"],["V","do get","do挿入・原形"],["X","I","主語"],["Z","to the station","到達点"]]}
+  ],
+  5:[
+    {scene:"教室",fn:"情報を得る",jp:"あなたはどの本を先に読みましたか？",gap:"which+名詞",sense:null,thread:"糸1+糸2",
+     en:"Which book did you read first?",nuance:"<b>限定詞型</b>。Which が名詞 book を引き連れ、2語で前出。",
+     parts:[["X","Which book","限定詞型wh(2語)"],["V","did read","do挿入・原形"],["X","you","主語"],["Z","first","順序の副詞"]]},
+    {scene:"雑談",fn:"情報を得る",jp:"あなたは誰と一緒に行ったのですか？",gap:"前置詞残留",sense:null,thread:"糸1+糸2",
+     en:"Who did you go with?",nuance:"口語は<b>前置詞残留</b>。with を元位置に残す（フォーマルは With whom）。",
+     parts:[["X","Who","目的語を問うwh"],["V","did go","do挿入・原形"],["X","you","主語"],["Z","with","残留した前置詞"]]}
+  ],
+  6:[
+    {scene:"道聞き",fn:"情報を得る",jp:"駅がどこにあるか教えてもらえますか？",gap:"従属節where",sense:null,thread:"糸1解除",
+     en:"Could you tell me where the station is?",nuance:"<b>二重疑問構造</b>。主節 Could you に糸1、従属節は<b>糸1解除</b>で平叙語順 where the station is。",
+     parts:[["V","Could tell","主節・糸1"],["X","you / me","主語・間接目的語"],["Y","where the station is","従属節(平叙語順)"]]},
+    {scene:"教室",fn:"情報を得る",jp:"どうやってそこへ行けばいいか分かりますか？",gap:"疑問詞+to不定詞",sense:null,thread:"糸1解除",
+     en:"Do you know how to get there?",nuance:"間接疑問の<b>縮約形</b>。how to get で「行き方」を表し、従属節に糸1なし。",
+     parts:[["V","Do know","主節・do挿入"],["X","you","主語"],["X","how to get there","疑問詞+to不定詞"]]}
+  ],
+  7:[
+    {scene:"買い物",fn:"申し出る",jp:"コーヒーと紅茶、どちらになさいますか？",gap:"alternative",sense:null,thread:"糸1",
+     en:"Would you like coffee or tea?",nuance:"<b>選択疑問</b>。Yes/Noの土台に or で選択肢を足す。",
+     parts:[["V","Would like","丁寧な申し出"],["X","you","主語"],["X","coffee or tea","選択肢"]]},
+    {scene:"寮生活",fn:"確認する",jp:"あなたは夕食を食べないのですか？",gap:"negative",sense:null,thread:"糸1",
+     en:"Don't you eat dinner?",nuance:"<b>否定疑問</b>。do挿入 + not を前出（Don't）。",
+     parts:[["V","Don't eat","否定疑問・do挿入"],["X","you","主語"],["X","dinner","目的語"]]}
+  ]
+};
+
+/* ================= STATE ================= */
+let mode="step";
+let selected=new Set([1]);
+let phase=0;                 // 0 select,1 answer,2 review,3 export
+let items=[];
+let attempts={};
+
+/* ================= SELECT PHASE ================= */
+function renderSteps(){
+  const el=document.getElementById('stepList');
+  el.innerHTML='';
+  for(let s=1;s<=7;s++){
+    const d=STEPDEF[s];
+    const sel=selected.has(s);
+    const b=document.createElement('button');
+    b.className='step'+(sel?' sel':'');
+    b.onclick=()=>toggleStep(s);
+    b.innerHTML=`<span class="no">${s}</span>
+      <span class="body"><span class="nm">${d.nm}</span><span class="ds">${d.ds}</span></span>
+      <span class="thread-tag ${d.tag}">${d.thread}</span>
+      <span class="check"></span>`;
+    el.appendChild(b);
+  }
+  updateMain();
+}
+function setMode(m){
+  mode=m;
+  document.getElementById('mStep').classList.toggle('active',m==='step');
+  document.getElementById('mComb').classList.toggle('active',m==='combined');
+  if(m==='step' && selected.size>1){ const f=[...selected][0]; selected=new Set([f]); }
+  renderSteps();
+}
+function toggleStep(s){
+  if(mode==='step'){ selected=new Set([s]); }
+  else { selected.has(s)?selected.delete(s):selected.add(s); if(selected.size===0) selected.add(s); }
+  renderSteps();
+}
+function updateMain(){
+  const btn=document.getElementById('mainBtn');
+  if(phase===0){ btn.disabled=selected.size===0; btn.textContent='出題する（5問）'; }
+}
+
+/* ================= GENERATE (mock of 1 API call) ================= */
+function generate(){
+  const pool=[...selected];
+  items=[];
+  for(let i=0;i<5;i++){
+    const step=pool[Math.floor(Math.random()*pool.length)];      // 完全ランダム
+    const bank=BANK[step];
+    const pick=bank[Math.floor(Math.random()*bank.length)];
+    items.push({id:'q'+(i+1),step,...pick});
+  }
+  attempts={};
+}
+
+/* ================= ANSWER PHASE ================= */
+function renderAnswer(){
+  const el=document.getElementById('answerList');
+  el.innerHTML='';
+  items.forEach((it,i)=>{
+    const d=STEPDEF[it.step];
+    const c=document.createElement('div');
+    c.className='qcard';
+    c.innerHTML=`<div class="qhead">
+        <span class="qnum">Q${i+1}</span>
+        <span class="pill">STEP${it.step} · ${d.nm}</span>
+        <span class="pill">${it.scene}</span>
+      </div>
+      <div class="jp">${it.jp}</div>
+      <textarea placeholder="英訳を入力…" oninput="attempts['${it.id}']=this.value">${attempts[it.id]||''}</textarea>`;
+    el.appendChild(c);
+  });
+}
+
+/* ================= REVIEW PHASE ================= */
+function partHTML(p){
+  return `<span class="part"><span class="role ${p[0]}">${p[0]}</span>${p[1]}<span class="note">${p[2]}</span></span>`;
+}
+function renderReview(){
+  const el=document.getElementById('reviewList');
+  el.innerHTML='';
+  items.forEach((it,i)=>{
+    const d=STEPDEF[it.step];
+    const mine=(attempts[it.id]||'').trim()||'（未入力）';
+    const senseTrap=['why','how','where','when'].includes(it.gap);
+    const ansRow=it.answer?`<div class="ans-row"><span class="lab">答え文</span><span class="val answer-sentence">${it.answer}</span></div>`:'';
+    const meta=`<div class="meta">
+        <span class="m">targetGap: ${it.gap}</span>
+        <span class="m${senseTrap?' trap':''}">answerSense: ${it.sense||'—'}</span>
+        <span class="m">糸: ${it.thread}</span>
+      </div>`;
+    const c=document.createElement('div');
+    c.className='qcard';
+    c.innerHTML=`<div class="qhead">
+        <span class="qnum">Q${i+1}</span>
+        <span class="pill">STEP${it.step} · ${d.nm}</span>
+        <span class="pill">${it.scene}</span>
+      </div>
+      <div class="jp">${it.jp}</div>
+      <div class="reveal">
+        <div class="ans-row"><span class="lab">自分の回答</span><span class="val mine">${mine}</span></div>
+        <div class="ans-row"><span class="lab">模範解答</span><span class="val model">${it.en}</span></div>
+        ${ansRow}
+        <div class="nuance"><b>ポイント</b>　${it.nuance}</div>
+        ${meta}
+        <div class="parts"><span class="plabel">構造分解</span>${it.parts.map(partHTML).join('')}</div>
+      </div>`;
+    el.appendChild(c);
+  });
+}
+
+/* ================= EXPORT PHASE ================= */
+function buildMD(){
+  const stamp=new Date().toLocaleString('ja-JP',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+  const modeLabel=mode==='step'?'STEP個別':'総合';
+  let md=`# 疑問文トレーナー 答え合わせ ${stamp}\n- モード: ${modeLabel} ／ 対象STEP: ${[...selected].sort().join(', ')}\n\n`;
+  items.forEach((it,i)=>{
+    const d=STEPDEF[it.step];
+    const mine=(attempts[it.id]||'').trim()||'（未入力）';
+    const partsLine=it.parts.map(p=>`[${p[0]}]${p[1]}（${p[2]}）`).join(' / ');
+    md+=`## 問題 ${i+1} / STEP${it.step}（${d.nm}）\n`;
+    md+=`- 日本語: ${it.jp}\n`;
+    md+=`- シーン: ${it.scene} ／ 機能: ${it.fn}\n`;
+    md+=`- targetGap: ${it.gap} ／ answerSense: ${it.sense||'—'}\n`;
+    md+=`- 自分の回答: ${mine}\n`;
+    md+=`- 模範解答: ${it.en}\n`;
+    if(it.answer) md+=`- 模範の答え文: ${it.answer}\n`;
+    md+=`- 模範のポイント: ${it.nuance.replace(/<\/?b>/g,'')}\n`;
+    md+=`- 構造分解: ${partsLine}\n`;
+    md+=`- 糸: ${it.thread}\n\n`;
+  });
+  return md.trim();
+}
+function renderExport(){ document.getElementById('mdPreview').textContent=buildMD(); }
+function downloadMD(){
+  const blob=new Blob([buildMD()],{type:'text/markdown'});
+  const a=document.createElement('a');
+  const stamp=new Date().toISOString().slice(0,16).replace(/[-:T]/g,'').replace(/(\d{8})(\d{4})/,'$1-$2');
+  a.href=URL.createObjectURL(blob);
+  a.download=`question-trainer_${mode}_${[...selected].sort().join('-')}_${stamp}.md`;
+  a.click();
+}
+function copyMD(){
+  navigator.clipboard.writeText(buildMD()).then(()=>{
+    const b=document.getElementById('copyBtn'); const t=b.textContent;
+    b.textContent='コピーしました ✓'; setTimeout(()=>b.textContent=t,1600);
+  });
+}
+
+/* ================= NAVIGATION ================= */
+const SECTIONS=['p-select','p-answer','p-review','p-export'];
+const TAGS=['01 · select','02 · answer','03 · review','04 · export'];
+function show(){
+  SECTIONS.forEach((id,i)=>document.getElementById(id).classList.toggle('hidden',i!==phase));
+  document.querySelectorAll('#rail span').forEach((s,i)=>s.classList.toggle('on',i<=phase));
+  document.getElementById('phaseTag').textContent=TAGS[phase];
+  document.getElementById('backBtn').classList.toggle('hidden',phase===0);
+  const btn=document.getElementById('mainBtn');
+  if(phase===0){updateMain();}
+  if(phase===1){btn.disabled=false;btn.textContent='答え合わせ';}
+  if(phase===2){btn.disabled=false;btn.textContent='MDに書き出す';}
+  if(phase===3){btn.disabled=false;btn.textContent='次の5問';}
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function next(){
+  if(phase===0){ generate(); phase=1; renderAnswer(); }
+  else if(phase===1){ phase=2; renderReview(); }
+  else if(phase===2){ phase=3; renderExport(); }
+  else if(phase===3){ generate(); phase=1; renderAnswer(); }   // 都度5問を新規生成（=1コール）
+  show();
+}
+function goBack(){
+  if(phase===1){ phase=0; }
+  else if(phase===2){ phase=1; renderAnswer(); }
+  else if(phase===3){ phase=2; renderReview(); }
+  show();
+}
+
+/* init */
+renderSteps();
+show();
+</script>
+</body>
+</html>
