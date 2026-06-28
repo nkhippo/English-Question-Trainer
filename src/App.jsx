@@ -136,10 +136,6 @@ export default function App() {
 
         {phase === 1 && (
           <section>
-            <h2 className="title">5問を英訳しよう</h2>
-            <p className="sub">
-              単語プールから順にタップして英文を組み立てよう。模範解答は「答え合わせ」まで出ません（瞬発訓練のため）。
-            </p>
             {items.map((item, i) => (
               <QuestionCard
                 key={item.id}

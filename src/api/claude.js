@@ -1,6 +1,7 @@
 import { buildGeneratePrompt } from '../prompts/generate.js';
 import { validateItems } from '../utils/validateItems.js';
 import { generateMockBatch } from '../utils/mockItems.js';
+import { assembleWordPoolData } from '../utils/wordPool.js';
 import { QUESTIONS_PER_SESSION } from '../constants/steps.js';
 
 const MODEL = 'claude-sonnet-4-5';
@@ -8,6 +9,15 @@ const MAX_TOKENS = 8192;
 const PROXY_URL = import.meta.env.VITE_GAS_PROXY_URL || '';
 
 export { QUESTIONS_PER_SESSION };
+
+function ensureWordPool(item) {
+  if (item.wordPool?.length) return item;
+  const { distractors, wordPool } = assembleWordPoolData(item.en, item.distractors, {
+    step: item.step,
+    targetGap: item.targetGap,
+  });
+  return { ...item, distractors, wordPool };
+}
 
 function sanitizeJsonText(text) {
   return text
@@ -134,7 +144,7 @@ export async function generateBatch({ steps, count = QUESTIONS_PER_SESSION }) {
 
   // 実API利用時はモックで補完しない（瞬発訓練の素材にサンプルが紛れるのを防ぐ）。
   // 不足したぶんは実問のみを返し、不足は呼び出し側（App）が表面化する。
-  return items.map((item, i) => ({ ...item, id: `q${i + 1}` }));
+  return items.map((item, i) => ({ ...ensureWordPool(item), id: `q${i + 1}` }));
 }
 
 export function isUsingMock() {
