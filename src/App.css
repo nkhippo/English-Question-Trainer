@@ -492,7 +492,7 @@ pre.md {
   display: flex;
   gap: 10px;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
 }
 
 .btn {
@@ -582,9 +582,5 @@ pre.md {
   .bar-inner {
     flex-direction: column;
     gap: 10px;
-  }
-
-  .note-1api {
-    order: 2;
   }
 }

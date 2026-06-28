@@ -204,10 +204,6 @@ export default function App() {
 
       <div className="bar">
         <div className="bar-inner">
-          <div className="note-1api">
-            <span className="dot" />
-            1セッション = Claude API 1コール（問題＋模範解答をセット生成）
-          </div>
           <div style={{ display: 'flex', gap: 10 }}>
             {phase > 0 && (
               <button type="button" className="btn ghost" onClick={goBack}>

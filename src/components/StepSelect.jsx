@@ -1,5 +1,4 @@
 import { STEPS } from '../constants/steps.js';
-import { ThreadTag } from './ThreadTag.jsx';
 
 export function StepSelect({ mode, selectedSteps, onToggle }) {
   return (
@@ -17,9 +16,7 @@ export function StepSelect({ mode, selectedSteps, onToggle }) {
             <span className="no">{n}</span>
             <span className="body">
               <span className="nm">{step.name}</span>
-              <span className="ds">{step.desc}</span>
             </span>
-            <ThreadTag thread={step.thread} />
             <span className="check" />
           </button>
         );
