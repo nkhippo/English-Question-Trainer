@@ -1,7 +1,9 @@
 const WH_WORDS = /\b(who|whom|what|which|whose|when|where|why|how)\b/gi;
 const AUX_OR_BE = /^(do|does|did|is|are|am|was|were|have|has|had|will|would|can|could|shall|should|may|might|must)\b/i;
-const DO_INSERT = /\b(do|does|did)\b/i;
-const BE_OR_AUX = /\b(is|are|am|was|were|have|has|had|will|would|can|could|shall|should|may|might|must|be|been|being)\b/i;
+// do挿入が同一節内で be形・法助動詞を直接従える誤用（×Do you can / ×Does she is going）だけを検出する。
+// 主語は最大2語まで挟める。have/has/had は本動詞用法（Did you have lunch?）が正当なので含めない。
+// これにより従属節の be/助動詞（Do you know where the station is?）を誤検出しない。
+const DO_PLUS_FINITE_AUX = /\b(do|does|did)\s+(?:\w+\s+){0,2}?(is|are|am|was|were|been|being|can|could|will|would|shall|should|may|might|must)\b/i;
 const SENSE_GAPS = new Set(['when', 'where', 'why', 'how']);
 
 function countWhWords(text) {
@@ -10,9 +12,7 @@ function countWhWords(text) {
 }
 
 function hasDoWithAux(en) {
-  if (!DO_INSERT.test(en)) return false;
-  const afterDo = en.replace(/^[^?]*?\b(do|does|did)\s+/i, '');
-  return BE_OR_AUX.test(afterDo);
+  return DO_PLUS_FINITE_AUX.test(en);
 }
 
 function subjectWhHasThread1(en, targetGap) {
@@ -82,7 +82,9 @@ export function validateItems(items, selectedSteps) {
       continue;
     }
 
-    if (countWhWords(en) > 2) {
+    // 1文1疑問詞。直接疑問は1つ、間接疑問(STEP6)のみ従属節whを含め2つまで許容。
+    const whLimit = step === 6 ? 2 : 1;
+    if (countWhWords(en) > whLimit) {
       invalidCount++;
       continue;
     }

@@ -130,11 +130,8 @@ export async function generateBatch({ steps, count = QUESTIONS_PER_SESSION }) {
     }
   }
 
-  if (items.length < count) {
-    const mock = generateMockBatch({ steps, count: count - items.length });
-    items = [...items, ...mock].slice(0, count);
-  }
-
+  // 実API利用時はモックで補完しない（瞬発訓練の素材にサンプルが紛れるのを防ぐ）。
+  // 不足したぶんは実問のみを返し、不足は呼び出し側（App）が表面化する。
   return items.map((item, i) => ({ ...item, id: `q${i + 1}` }));
 }
 

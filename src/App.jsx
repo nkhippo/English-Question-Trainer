@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { generateBatch, isUsingMock } from './api/claude.js';
+import { generateBatch, isUsingMock, QUESTIONS_PER_SESSION } from './api/claude.js';
 import { Header } from './components/Header.jsx';
 import { ProgressRail } from './components/ProgressRail.jsx';
 import { ModeToggle } from './components/ModeToggle.jsx';
@@ -19,6 +19,7 @@ export default function App() {
   const [attempts, setAttempts] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [shortfall, setShortfall] = useState(0);
 
   const selectedArray = useMemo(() => [...selectedSteps].sort((a, b) => a - b), [selectedSteps]);
 
@@ -64,8 +65,14 @@ export default function App() {
     setError('');
     try {
       const batch = await generateBatch({ steps: selectedArray });
+      if (batch.length === 0) {
+        setError('出題を生成できませんでした。もう一度お試しください。');
+        return false;
+      }
       setItems(batch);
       setAttempts({});
+      // 実API利用時に5問に満たなかった場合だけ不足数を保持（モード時は表示しない）
+      setShortfall(!isUsingMock() && batch.length < QUESTIONS_PER_SESSION ? batch.length : 0);
       return true;
     } catch (e) {
       setError(e instanceof Error ? e.message : '出題に失敗しました');
@@ -127,6 +134,12 @@ export default function App() {
         {isUsingMock() && phase > 0 && (
           <div className="mock-banner">
             デモモード（VITE_GAS_PROXY_URL 未設定）— サンプル問題を表示中
+          </div>
+        )}
+
+        {shortfall > 0 && phase > 0 && (
+          <div className="mock-banner">
+            {QUESTIONS_PER_SESSION}問中 {shortfall}問のみ生成できました。「次の5問」で再生成できます。
           </div>
         )}
 
