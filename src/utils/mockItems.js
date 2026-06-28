@@ -20,9 +20,9 @@ const BANK = {
       ],
       distractors: [
         {
-          label: 'be動詞があるのにdo挿入',
-          words: ['Do', 'are'],
-          reason: '本動詞が be のときは be を前に出します。一般動詞用の do は使いません。',
+          label: 'be動詞を前に出す',
+          words: ['Is', 'are'],
+          reason: '本動詞が一般動詞 use なので be は使いません。be を前に出すのは本動詞が be のときです。',
         },
         {
           label: '語順の取り違え',
@@ -45,14 +45,9 @@ const BANK = {
       ],
       distractors: [
         {
-          label: '三単現なのにdoを使う',
-          words: ['Do', 'goes'],
-          reason: '三人称単数の現在では does を前に出し、本動詞は原形 go のままにします。Do と goes の組み合わせは二重表現です。',
-        },
-        {
           label: '語順の取り違え',
-          words: ['go', 'Does'],
-          reason: 'Yes/No疑問では助動詞 Does を主語の前に出します。動詞 go を先に置く語順は疑問文になりません。',
+          words: ['go', 'the'],
+          reason: 'Yes/No疑問では助動詞 Does を主語の前に出します。動詞を主語より前に置く語順は疑問文になりません。',
         },
       ],
     },
@@ -130,8 +125,8 @@ const BANK = {
         },
         {
           label: '主語whへのdo挿入',
-          words: ['Does', 'be'],
-          reason: '主語を問う疑問文では do を挿入しません。be 動詞もそのまま What is… の順です。',
+          words: ['Did', 'be'],
+          reason: '主語を問う疑問文では助動詞を前に出しません。What is… の語順のままです。',
         },
       ],
     },
@@ -178,14 +173,9 @@ const BANK = {
       ],
       distractors: [
         {
-          label: '三単現でdoと活用形を併用',
-          words: ['Do', 'leaves'],
-          reason: '三人称単数では does を前に出し、本動詞 leave は原形のままです。Do と leaves の併用は誤りです。',
-        },
-        {
-          label: '主語whの語順にする',
-          words: ['Did', 'When'],
-          reason: 'When は副詞的な疑問詞なので文頭に出し、助動詞を主語の前に置きます。主語を問う語順とは異なります。',
+          label: '語順の取り違え',
+          words: ['leave', 'When'],
+          reason: '副詞的な疑問詞 When は文頭に出します。動詞を When より前に置く語順は疑問文になりません。',
         },
       ],
     },
@@ -367,9 +357,9 @@ const BANK = {
       ],
       distractors: [
         {
-          label: '選択肢なしのYes/No疑問',
-          words: ['Do', 'want'],
-          reason: '「A か B か」を問う選択疑問では or で選択肢を示します。単純な Do you want… では選択の意図が伝わりません。',
+          label: '選択肢なしの申し出',
+          words: ['want', 'Would'],
+          reason: '「A か B か」を問う選択疑問では or で選択肢を示します。Would you like… の丁寧な申し出の形が自然です。',
         },
         {
           label: 'and で並列する',
@@ -397,9 +387,9 @@ const BANK = {
           reason: '否定疑問では Don\'t you…? のように not を助動詞と一体で前に出します。平叙の否定語順では疑問文になりません。',
         },
         {
-          label: 'Do と not を別々に並べる',
-          words: ['Do', 'not'],
-          reason: '否定疑問は Don\'t のように短縮形で前に出すのが自然です。Do you not… は別の強調的な形です。',
+          label: 'not の位置の取り違え',
+          words: ['not', 'you'],
+          reason: '否定疑問では Don\'t you…? のように not を助動詞と一体で主語の前に出します。not を主語の後に置くのは平叙の否定です。',
         },
       ],
     },

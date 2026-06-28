@@ -120,11 +120,38 @@ function isLikelyPastTenseVerb(word) {
   return /ed$/.test(w) && w.length > 3;
 }
 
+const DO_DOES_PERSON_TOPIC_RE =
+  /三人称|三単現|do\s*[と↔／/]|does\s*[と↔／/]|[と↔／/]\s*do|[と↔／/]\s*does|人称|does誤用|doを使う|doesを使う|Do と goes|Do と leaves/i;
+
+function isDoDoesPersonDistractor(distractor, answerTokens) {
+  const label = distractor.label || '';
+  const reason = distractor.reason || '';
+  if (DO_DOES_PERSON_TOPIC_RE.test(label) || DO_DOES_PERSON_TOPIC_RE.test(reason)) {
+    return true;
+  }
+
+  const words = distractor.words.map(normalizeToken).filter(Boolean);
+  if (words.some((w) => w === 'does')) return true;
+
+  const answerSet = new Set(answerTokens.map(normalizeToken));
+  const distractorHasDo = words.includes('do');
+  const answerHasDoes = answerSet.has('does');
+  const answerHasDo = answerSet.has('do');
+
+  // 模範が does のとき do を混ぜる（またはその逆）は人称の取り違え
+  if (distractorHasDo && answerHasDoes && !answerHasDo) return true;
+  if (words.includes('does') && answerHasDo && !answerHasDoes) return true;
+
+  return false;
+}
+
 /**
  * @param {Distractor} distractor
  * @param {string[]} answerTokens
  */
 export function isTenseRelatedDistractor(distractor, answerTokens) {
+  if (isDoDoesPersonDistractor(distractor, answerTokens)) return false;
+
   const label = distractor.label || '';
   const reason = distractor.reason || '';
 
@@ -153,7 +180,7 @@ export function isTenseRelatedDistractor(distractor, answerTokens) {
  */
 function enforceDistractorRules(distractors, meta, en) {
   const tokens = tokenizeEnglish(en);
-  let list = [...distractors];
+  let list = distractors.filter((d) => !isDoDoesPersonDistractor(d, tokens));
 
   let tenseKept = false;
   list = list.filter((d) => {
@@ -169,6 +196,7 @@ function enforceDistractorRules(distractors, meta, en) {
   for (const candidate of fallbacks) {
     if (list.length >= 2) break;
     if (list.some((d) => d.label === candidate.label)) continue;
+    if (isDoDoesPersonDistractor(candidate, tokens)) continue;
     const wouldBeSecondTense =
       isTenseRelatedDistractor(candidate, tokens) &&
       list.some((d) => isTenseRelatedDistractor(d, tokens));
@@ -208,7 +236,7 @@ export function fallbackDistractors(item) {
     return [
       {
         label: '従属節内の助動詞前置',
-        words: ['did', 'do'],
+        words: ['did'],
         reason:
           '間接疑問の従属節では助動詞を前に出さず、平叙文と同じ語順にします（×…where did the station is）。',
       },
@@ -274,10 +302,10 @@ export function fallbackDistractors(item) {
 
   return [
     {
-      label: 'be動詞があるのにdo挿入',
-      words: ['Do', 'does'],
+      label: 'be動詞があるのに一般動詞の語順',
+      words: ['Is', 'are'],
       reason:
-        '本動詞が be のときは be を主語の前に出します。一般動詞用の do/does は使いません（×Do you are…）。',
+        '本動詞が be のときは be を主語の前に出します。一般動詞と同じ組み立てにはしません（×Is you happy? の取り違え）。',
     },
     {
       label: '疑問詞の位置の取り違え',
