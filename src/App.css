@@ -89,12 +89,6 @@ header.app-header {
   border-radius: 2px;
 }
 
-.phase-tag {
-  font-size: 12px;
-  color: var(--muted);
-  font-family: var(--mono);
-}
-
 .rail {
   display: flex;
   gap: 6px;
@@ -286,16 +280,6 @@ p.sub {
   font-size: 12px;
   font-weight: 700;
   color: var(--muted);
-}
-
-.pill {
-  font-size: 10.5px;
-  font-weight: 700;
-  padding: 2px 9px;
-  border-radius: 20px;
-  background: var(--surface2);
-  color: var(--muted);
-  border: 1px solid var(--hair);
 }
 
 .jp {

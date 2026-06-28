@@ -1,10 +1,8 @@
 import { useMemo, useState } from 'react';
-import { STEPS } from '../constants/steps.js';
 import { formatQuestionMarkdown } from '../utils/formatExportMarkdown.js';
 import { keysToSentence, usedDistractorSources } from '../utils/wordPool.js';
 
 export function ReviewCard({ item, index, selectedKeys }) {
-  const stepInfo = STEPS[item.step];
   const pool = item.wordPool || [];
   const mine = keysToSentence(pool, selectedKeys).trim() || '（未入力）';
   const [copied, setCopied] = useState(false);
@@ -39,10 +37,6 @@ export function ReviewCard({ item, index, selectedKeys }) {
     <div className="qcard">
       <div className="qhead">
         <span className="qnum">Q{index + 1}</span>
-        <span className="pill">
-          STEP{item.step} · {stepInfo?.name}
-        </span>
-        <span className="pill">{item.sceneTag}</span>
       </div>
       <div className="jp">{item.jp}</div>
       <div className="reveal">

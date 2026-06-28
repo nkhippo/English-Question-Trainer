@@ -1,4 +1,4 @@
-export function Header({ phaseTag }) {
+export function Header() {
   return (
     <header className="app-header">
       <div className="brand">
@@ -21,7 +21,6 @@ export function Header({ phaseTag }) {
           <div className="wordmark">疑問文トレーナー</div>
         </div>
       </div>
-      <div className="phase-tag">{phaseTag}</div>
     </header>
   );
 }

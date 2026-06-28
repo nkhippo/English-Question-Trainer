@@ -7,8 +7,6 @@ import { StepSelect } from './components/StepSelect.jsx';
 import { QuestionCard } from './components/QuestionCard.jsx';
 import { ReviewCard } from './components/ReviewCard.jsx';
 
-const PHASE_TAGS = ['01 · select', '02 · answer', '03 · review'];
-
 export default function App() {
   const [mode, setMode] = useState('step');
   const [selectedSteps, setSelectedSteps] = useState(new Set([1]));
@@ -108,7 +106,7 @@ export default function App() {
     <>
       {loading && <div className="loading-overlay">出題を生成中…</div>}
       <div className="wrap">
-        <Header phaseTag={PHASE_TAGS[phase]} />
+        <Header />
         <ProgressRail phase={phase} />
 
         {isUsingMock() && phase > 0 && (

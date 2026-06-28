@@ -1,9 +1,7 @@
 import { useMemo } from 'react';
-import { STEPS } from '../constants/steps.js';
 import { keysToSentence } from '../utils/wordPool.js';
 
 export function QuestionCard({ item, index, selectedKeys, onChange }) {
-  const stepInfo = STEPS[item.step];
   const pool = item.wordPool || [];
 
   const usedKeys = useMemo(() => new Set(selectedKeys || []), [selectedKeys]);
@@ -30,10 +28,6 @@ export function QuestionCard({ item, index, selectedKeys, onChange }) {
     <div className="qcard">
       <div className="qhead">
         <span className="qnum">Q{index + 1}</span>
-        <span className="pill">
-          STEP{item.step} · {stepInfo?.name}
-        </span>
-        <span className="pill">{item.sceneTag}</span>
       </div>
       <div className="jp">{item.jp}</div>
 
