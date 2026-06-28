@@ -1,13 +1,20 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { STEPS } from '../constants/steps.js';
 import { formatQuestionMarkdown } from '../utils/formatExportMarkdown.js';
+import { keysToSentence, usedDistractorSources } from '../utils/wordPool.js';
 
-export function ReviewCard({ item, index, attempt }) {
+export function ReviewCard({ item, index, selectedKeys }) {
   const stepInfo = STEPS[item.step];
-  const mine = (attempt || '').trim() || '（未入力）';
+  const pool = item.wordPool || [];
+  const mine = keysToSentence(pool, selectedKeys).trim() || '（未入力）';
   const [copied, setCopied] = useState(false);
 
-  const { markdown, filename } = formatQuestionMarkdown(item, attempt);
+  const usedTrapSources = useMemo(
+    () => usedDistractorSources(pool, selectedKeys),
+    [pool, selectedKeys],
+  );
+
+  const { markdown, filename } = formatQuestionMarkdown(item, selectedKeys);
 
   async function copyMd() {
     try {
@@ -53,6 +60,33 @@ export function ReviewCard({ item, index, attempt }) {
             <span className="val answer-sentence">{item.answerSentence}</span>
           </div>
         )}
+
+        {item.distractors?.length > 0 && (
+          <div className="distractor-section">
+            <div className="distractor-heading">単語プールの誤答誘導語 — 模範解答で使わない理由</div>
+            {item.distractors.map((dist, i) => {
+              const source = `distractor-${i}`;
+              const picked = usedTrapSources.has(source);
+              return (
+                <div key={dist.label} className={`distractor-card${picked ? ' picked' : ''}`}>
+                  <div className="distractor-top">
+                    <span className="distractor-label">{dist.label}</span>
+                    <span className="distractor-words">{dist.words.join(' ')}</span>
+                    {picked && <span className="distractor-badge">回答に使用</span>}
+                  </div>
+                  <p className="distractor-reason">{dist.reason}</p>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {item.nuance && (
+          <div className="nuance">
+            <b>模範解答のポイント</b> — {item.nuance}
+          </div>
+        )}
+
         <div className="card-actions">
           <button type="button" className="btn primary sm" onClick={copyMd}>
             {copied ? 'コピーしました ✓' : 'この問題をMDで出力（コピー）'}

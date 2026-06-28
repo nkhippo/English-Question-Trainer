@@ -1,5 +1,6 @@
 import { STEPS } from '../constants/steps.js';
 import { normalizePart } from './parts.js';
+import { keysToSentence } from './wordPool.js';
 
 // 内部コード → 平易表記（§5-3）。表示・MDには独自用語を出さない。
 const GAP_PLAIN = {
@@ -46,6 +47,14 @@ function partsPlainLines(parts) {
     .join('\n');
 }
 
+function distractorLines(distractors) {
+  if (!distractors?.length) return '';
+  const lines = distractors
+    .map((d, i) => `  ${i + 1}. ${d.label}（${d.words.join(' ')}）— ${d.reason}`)
+    .join('\n');
+  return `\n- 単語プールの誤答誘導語（模範解答で使わない理由）:\n${lines}`;
+}
+
 function filenameStamp() {
   const d = new Date();
   const pad = (n) => String(n).padStart(2, '0');
@@ -56,11 +65,12 @@ function filenameStamp() {
  * 1問ぶんの「貼付プロンプト形式」MDを生成する（②）。
  * Projects に貼るだけで ①添削 ②模範解答が正しい理由 ③その他の表現 が返る。
  * @param {object} item
- * @param {string} attempt
+ * @param {string[]} selectedKeys
  */
-export function formatQuestionMarkdown(item, attempt) {
+export function formatQuestionMarkdown(item, selectedKeys) {
   const stepInfo = STEPS[item.step];
-  const mine = (attempt || '').trim() || '（未入力）';
+  const pool = item.wordPool || [];
+  const mine = keysToSentence(pool, selectedKeys).trim() || '（未入力）';
   const reply = item.answerSentence
     ? item.answerSentence
     : '（この問題に回答文はありません）';
@@ -90,6 +100,7 @@ ${mine}
 - 模範解答のポイント: ${stripJargon(item.nuance || '') || '—'}
 - 文の組み立て:
 ${partsPlainLines(item.parts) || '  —'}
+${distractorLines(item.distractors)}
 `;
 
   return {

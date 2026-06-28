@@ -324,6 +324,162 @@ p.sub {
   background: #fff;
 }
 
+/* word pool builder */
+.builder-label {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--muted);
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.sentence-builder {
+  margin-bottom: 14px;
+}
+
+.built-sentence {
+  min-height: 44px;
+  padding: 11px 13px;
+  border: 1.5px solid var(--hair);
+  border-radius: 10px;
+  background: var(--surface2);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.built-sentence.empty {
+  color: var(--muted);
+  font-weight: 400;
+  font-size: 13.5px;
+}
+
+.built-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.word-pool {
+  margin-top: 4px;
+}
+
+.pool-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.word-chip {
+  border: 1.5px solid var(--hair);
+  border-radius: 8px;
+  padding: 7px 13px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.12s;
+  background: #fff;
+  color: var(--ink);
+}
+
+.word-chip.pool:hover {
+  border-color: var(--t2);
+  background: var(--t2bg);
+  transform: translateY(-1px);
+}
+
+.word-chip.selected {
+  background: var(--t1bg);
+  border-color: var(--t1);
+  color: var(--t1tx);
+}
+
+.word-chip.selected:hover {
+  background: var(--trapbg);
+  border-color: var(--trap);
+  color: var(--traptx);
+}
+
+.clear-link {
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 12px;
+  color: var(--muted);
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 4px 6px;
+}
+
+.clear-link:hover {
+  color: var(--ink);
+}
+
+/* distractor explanations (review) */
+.distractor-section {
+  margin: 14px 0 12px;
+}
+
+.distractor-heading {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--traptx);
+  margin-bottom: 10px;
+  letter-spacing: 0.3px;
+}
+
+.distractor-card {
+  background: var(--surface2);
+  border: 1.5px solid var(--hair);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+}
+
+.distractor-card.picked {
+  border-color: var(--trap);
+  background: var(--trapbg);
+}
+
+.distractor-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.distractor-label {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--traptx);
+}
+
+.distractor-words {
+  font-size: 14px;
+  font-weight: 700;
+  font-family: var(--mono);
+}
+
+.distractor-badge {
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: var(--trap);
+  color: #fff;
+}
+
+.distractor-reason {
+  font-size: 13px;
+  color: #3a4347;
+  margin: 0;
+  line-height: 1.55;
+}
+
 .reveal {
   border-top: 1px dashed var(--hair);
   margin-top: 14px;

@@ -1,3 +1,5 @@
+import { assembleWordPoolData } from './wordPool.js';
+
 const WH_WORDS = /\b(who|whom|what|which|whose|when|where|why|how)\b/gi;
 const AUX_OR_BE = /^(do|does|did|is|are|am|was|were|have|has|had|will|would|can|could|shall|should|may|might|must)\b/i;
 // do挿入が同一節内で be形・法助動詞を直接従える誤用（×Do you can / ×Does she is going）だけを検出する。
@@ -103,6 +105,11 @@ export function validateItems(items, selectedSteps) {
 
     en = ensureQuestionMark(en);
 
+    const { distractors, wordPool } = assembleWordPoolData(en, item.distractors, {
+      step,
+      targetGap,
+    });
+
     valid.push({
       ...item,
       en,
@@ -117,6 +124,8 @@ export function validateItems(items, selectedSteps) {
       answerSense: answerSense ?? null,
       answerSentence: typeof item.answerSentence === 'string' ? item.answerSentence : null,
       parts: Array.isArray(item.parts) ? item.parts : [],
+      distractors,
+      wordPool,
     });
   }
 

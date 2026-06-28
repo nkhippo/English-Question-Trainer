@@ -42,8 +42,8 @@ export default function App() {
     });
   }, []);
 
-  const handleAttemptChange = useCallback((id, value) => {
-    setAttempts((prev) => ({ ...prev, [id]: value }));
+  const handleAttemptChange = useCallback((id, selectedKeys) => {
+    setAttempts((prev) => ({ ...prev, [id]: selectedKeys }));
   }, []);
 
   const scrollTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -140,14 +140,14 @@ export default function App() {
           <section>
             <h2 className="title">5問を英訳しよう</h2>
             <p className="sub">
-              まず5問すべて自力で。模範解答は「答え合わせ」まで出ません（瞬発訓練のため）。
+              単語プールから順にタップして英文を組み立てよう。模範解答は「答え合わせ」まで出ません（瞬発訓練のため）。
             </p>
             {items.map((item, i) => (
               <QuestionCard
                 key={item.id}
                 item={item}
                 index={i}
-                value={attempts[item.id] || ''}
+                selectedKeys={attempts[item.id] || []}
                 onChange={handleAttemptChange}
               />
             ))}
@@ -158,14 +158,14 @@ export default function App() {
           <section>
             <h2 className="title">答え合わせ</h2>
             <p className="sub">
-              模範解答（質問文と答え）を確認しよう。各問の「この問題をMDで出力」を押すと、デスクトップClaudeで添削できるMDをコピーできます。
+              模範解答と照らし合わせよう。誤答誘導語を使った場合は、その理由も確認してね。各問の「MDで出力」でデスクトップClaudeに添削依頼できます。
             </p>
             {items.map((item, i) => (
               <ReviewCard
                 key={item.id}
                 item={item}
                 index={i}
-                attempt={attempts[item.id]}
+                selectedKeys={attempts[item.id]}
               />
             ))}
           </section>
