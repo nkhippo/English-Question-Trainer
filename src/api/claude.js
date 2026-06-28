@@ -74,9 +74,11 @@ async function callProxy(system, userMessage) {
     ],
   };
 
+  // application/json だとブラウザが OPTIONS プリフライトを送り、GAS が CORS ヘッダを返せずブロックされる。
+  // text/plain は「simple request」となりプリフライトを回避できる（GAS 定番ワークアラウンド）。
   const res = await fetch(PROXY_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
     body: JSON.stringify(body),
   });
 

@@ -25,6 +25,8 @@ npm run build
 
 本番ビルドでは `VITE_GAS_PROXY_URL` に GAS ウェブアプリ URL を設定する。未設定時はプロトタイプ由来のモック問題で動作する。
 
+フロントから GAS へは `Content-Type: text/plain` で POST する（`application/json` だと CORS プリフライトでブロックされる）。
+
 ## GAS プロキシ
 
 1. `gas/proxy.gs` を Google Apps Script にコピー
@@ -41,6 +43,7 @@ npm run build
 | `question-trainer-decision-tree.svg` | 生成ロジック分岐図 |
 | `question-trainer-prototype.html` | UI視覚的正本 |
 | `question-trainer-cursor-work-request.md` | 実装引き渡し |
+| `WORK_REPORT.md` | Questions アプリ（旧 HTML 版）改修レポート |
 
 ## プロンプトダンプ
 
