@@ -1,5 +1,19 @@
 import { useMemo } from 'react';
-import { keysToSentence } from '../utils/wordPool.js';
+import { keysToSentence, tokenForSentence } from '../utils/wordPool.js';
+
+function selectedLabels(pool, selectedKeys) {
+  let capitalizeNext = true;
+  return (selectedKeys || []).map((key) => {
+    const entry = pool.find((e) => e.key === key);
+    if (!entry) return null;
+    let label = entry.text;
+    if (/[a-zA-Z]/.test(entry.text)) {
+      label = tokenForSentence(entry.text, capitalizeNext);
+      capitalizeNext = false;
+    }
+    return { key, label };
+  }).filter(Boolean);
+}
 
 export function QuestionCard({ item, index, selectedKeys, onChange }) {
   const pool = item.wordPool || [];
@@ -7,6 +21,10 @@ export function QuestionCard({ item, index, selectedKeys, onChange }) {
   const usedKeys = useMemo(() => new Set(selectedKeys || []), [selectedKeys]);
   const available = pool.filter((e) => !usedKeys.has(e.key));
   const built = keysToSentence(pool, selectedKeys);
+  const chips = useMemo(
+    () => selectedLabels(pool, selectedKeys),
+    [pool, selectedKeys],
+  );
 
   function pick(key) {
     onChange(item.id, [...(selectedKeys || []), key]);
@@ -38,10 +56,7 @@ export function QuestionCard({ item, index, selectedKeys, onChange }) {
         </div>
         {selectedKeys?.length > 0 && (
           <div className="built-chips">
-            {selectedKeys.map((key, i) => {
-              const entry = pool.find((e) => e.key === key);
-              if (!entry) return null;
-              return (
+            {chips.map(({ key, label }, i) => (
                 <button
                   key={`${key}-${i}`}
                   type="button"
@@ -49,10 +64,9 @@ export function QuestionCard({ item, index, selectedKeys, onChange }) {
                   onClick={() => unpick(key)}
                   title="タップで戻す"
                 >
-                  {entry.text}
+                  {label}
                 </button>
-              );
-            })}
+              ))}
             <button type="button" className="clear-link" onClick={clearAll}>
               クリア
             </button>

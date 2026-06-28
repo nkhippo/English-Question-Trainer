@@ -17,6 +17,30 @@ export function tokenizeEnglish(sentence) {
  * @typedef {{ key: string, text: string, source: string }} PoolEntry
  */
 
+function isWordToken(text) {
+  return /[a-zA-Z]/.test(text);
+}
+
+function poolKey(text) {
+  return isWordToken(text) ? text.toLowerCase() : text;
+}
+
+/** プール表示用（小文字） */
+export function poolDisplayText(text) {
+  if (!isWordToken(text)) return text;
+  return text.toLowerCase();
+}
+
+/** 組み立て英文での1語表示（先頭語のみ先頭大文字） */
+export function tokenForSentence(text, capitalizeAsFirst) {
+  if (!isWordToken(text)) return text;
+  const lower = text.toLowerCase();
+  if (capitalizeAsFirst) {
+    return lower.charAt(0).toUpperCase() + lower.slice(1);
+  }
+  return lower;
+}
+
 /**
  * @param {string} en
  * @param {Distractor[]} distractors
@@ -27,15 +51,28 @@ export function buildWordPool(en, distractors = []) {
   const entries = [];
   let idx = 0;
 
-  for (const text of answerTokens) {
-    entries.push({ key: `a${idx}`, text, source: 'answer' });
+  for (const raw of answerTokens) {
+    entries.push({
+      key: `a${idx}`,
+      text: poolDisplayText(raw),
+      source: 'answer',
+    });
     idx += 1;
   }
 
+  const inPoolKeys = new Set(entries.map((e) => poolKey(e.text)));
+
   distractors.forEach((dist, dIdx) => {
-    for (const text of dist.words || []) {
-      if (!text) continue;
-      entries.push({ key: `d${dIdx}-${idx}`, text, source: `distractor-${dIdx}` });
+    for (const raw of dist.words || []) {
+      if (!raw) continue;
+      const key = poolKey(raw);
+      if (inPoolKeys.has(key)) continue;
+      inPoolKeys.add(key);
+      entries.push({
+        key: `d${dIdx}-${idx}`,
+        text: poolDisplayText(raw),
+        source: `distractor-${dIdx}`,
+      });
       idx += 1;
     }
   });
@@ -53,7 +90,16 @@ export function buildWordPool(en, distractors = []) {
 export function keysToSentence(pool, selectedKeys) {
   if (!selectedKeys?.length) return '';
   const map = new Map(pool.map((e) => [e.key, e.text]));
-  return selectedKeys.map((k) => map.get(k)).filter(Boolean).join(' ');
+  const tokens = selectedKeys.map((k) => map.get(k)).filter(Boolean);
+  let capitalizeNext = true;
+  return tokens
+    .map((t) => {
+      if (!isWordToken(t)) return t;
+      const out = tokenForSentence(t, capitalizeNext);
+      capitalizeNext = false;
+      return out;
+    })
+    .join(' ');
 }
 
 /**
