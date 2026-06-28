@@ -10,7 +10,7 @@ function buildStepDefs(selectedSteps) {
       const s = STEPS[n];
       const gaps = s.gapCandidates.join(' / ');
       const extra = s.requireAnswerSentence ? '（answerSentence必須）' : '';
-      return `STEP ${n}: ${s.name} — ${s.desc}。糸: ${s.thread}。targetGap候補: ${gaps}${extra}`;
+      return `STEP ${n}: ${s.name} — ${s.desc}。targetGap候補: ${gaps}${extra}`;
     })
     .join('\n');
 }
@@ -47,9 +47,10 @@ ${tenses}
   }
 ]
 
-nuance ルール:
-- 模範解答がなぜその形になるかを 1〜2文で。構造分解・語順・時制（どの助動詞が前に出たか／主語whで糸1を使わない 等）のうち該当点に触れる
-- why/how/when/where は answerSense（原因/目的・手段/様態・時点/節 等）にも1語触れる`;
+nuance / note ルール:
+- 模範解答がなぜその形になるかを 1〜2文で。語順・時制（どの助動詞を前に出したか／主語をたずねるwhでは助動詞を前に出さない 等）の該当点に触れる
+- why/how/when/where は answerSense（原因/目的・手段/様態・時点/節 等）にも1語触れる
+- **nuance・note には独自用語『糸/糸1/糸2』『X/Y/Z/V』を使わず、平易な日本語で書く**（例: ×「糸1を解除し」→ ○「助動詞を前に出さず、ふつうの語順にして」）`;
 
   return { system: SYSTEM_PROMPT, user };
 }

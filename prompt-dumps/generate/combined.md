@@ -15,6 +15,7 @@ JSONの厳守ルール（grading-prompt.md と同一）:
 - 文字列値はダブルクォートのみ使用（シングルクォート不可）
 - nuance/note 内で英文・英単語を引用するときは『』を使い、ダブルクォート(")は使わない
 - 末尾カンマ禁止 / 生の改行禁止（必要なら \n）
+- nuance と parts[].note は**平易な日本語**で書く。独自用語『糸／糸1／糸2』『X/Y/Z/V』は使わず、『助動詞を主語の前に出す』『疑問詞を文頭に動かす』『時を表す語句』のように日常語で説明する（role/thread のコードはJSONフィールドにのみ残す）
 
 作問の絶対ルール（取りこぼし厳禁）:
 - 1文につき疑問詞は1つ（2つ同時に問わない）
@@ -36,10 +37,10 @@ JSONの厳守ルール（grading-prompt.md と同一）:
 
 - 対象STEP: 1, 3, 4, 6
 - STEP定義:
-STEP 1: Yes/No 疑問文 — 糸1のみ・3機構を回す。糸: 糸1。targetGap候補: yesno
-STEP 3: wh・主語以外を聞く — 糸1 + 糸2。糸: 糸1+糸2。targetGap候補: object / complement / when / where / why / how
-STEP 4: 副詞wh ＋ 答え文 — when/where/why/how + 答え。糸: 糸1+糸2。targetGap候補: when / where / why / how（answerSentence必須）
-STEP 6: 間接疑問 — 糸1解除・二重疑問構造。糸: 糸1解除。targetGap候補: 従属節gap / 疑問詞+to不定詞
+STEP 1: Yes/No 疑問文 — 「はい/いいえ」で答える。助動詞を主語の前に出す。targetGap候補: yesno
+STEP 3: 主語以外をたずねる疑問文 — 「何を・どこで」など。助動詞を前に出し、疑問詞を文頭へ。targetGap候補: object / complement / when / where / why / how
+STEP 4: 理由・方法・時・場所をたずねる — why / how / when / where と、その答え方。targetGap候補: when / where / why / how（answerSentence必須）
+STEP 6: 間接疑問 — 文の中に疑問を埋め込む（Do you know where … ?）。targetGap候補: 従属節gap / 疑問詞+to不定詞
 - 使用してよいシーン（彩り・話題は固定しない／毎問ランダムに1つ選ぶ）:
 【A 生活者共通】道聞き、買い物、寮生活、雑談、教室、空港、レストラン
 【B ペルソナ】留学生活、職場、家庭、旅行
@@ -67,7 +68,8 @@ STEP 6: 間接疑問 — 糸1解除・二重疑問構造。糸: 糸1解除。tar
   }
 ]
 
-nuance ルール:
-- 模範解答がなぜその形になるかを 1〜2文で。構造分解・語順・時制（どの助動詞が前に出たか／主語whで糸1を使わない 等）のうち該当点に触れる
+nuance / note ルール:
+- 模範解答がなぜその形になるかを 1〜2文で。語順・時制（どの助動詞を前に出したか／主語をたずねるwhでは助動詞を前に出さない 等）の該当点に触れる
 - why/how/when/where は answerSense（原因/目的・手段/様態・時点/節 等）にも1語触れる
+- **nuance・note には独自用語『糸/糸1/糸2』『X/Y/Z/V』を使わず、平易な日本語で書く**（例: ×「糸1を解除し」→ ○「助動詞を前に出さず、ふつうの語順にして」）
 ```

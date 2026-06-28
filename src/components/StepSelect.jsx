@@ -16,6 +16,7 @@ export function StepSelect({ mode, selectedSteps, onToggle }) {
             <span className="no">{n}</span>
             <span className="body">
               <span className="nm">{step.name}</span>
+              <span className="ds">{step.desc}</span>
             </span>
             <span className="check" />
           </button>

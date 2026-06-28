@@ -6,10 +6,8 @@ import { ModeToggle } from './components/ModeToggle.jsx';
 import { StepSelect } from './components/StepSelect.jsx';
 import { QuestionCard } from './components/QuestionCard.jsx';
 import { ReviewCard } from './components/ReviewCard.jsx';
-import { ExportPanel } from './components/ExportPanel.jsx';
-import { formatExportMarkdown } from './utils/formatExportMarkdown.js';
 
-const PHASE_TAGS = ['01 · select', '02 · answer', '03 · review', '04 · export'];
+const PHASE_TAGS = ['01 · select', '02 · answer', '03 · review'];
 
 export default function App() {
   const [mode, setMode] = useState('step');
@@ -22,16 +20,6 @@ export default function App() {
   const [shortfall, setShortfall] = useState(0);
 
   const selectedArray = useMemo(() => [...selectedSteps].sort((a, b) => a - b), [selectedSteps]);
-
-  const exportData = useMemo(() => {
-    if (items.length === 0) return { markdown: '', filename: 'question-trainer.md' };
-    return formatExportMarkdown({
-      mode,
-      selectedSteps: selectedArray,
-      items,
-      attempts,
-    });
-  }, [mode, selectedArray, items, attempts]);
 
   const handleModeChange = useCallback((next) => {
     setMode(next);
@@ -71,7 +59,6 @@ export default function App() {
       }
       setItems(batch);
       setAttempts({});
-      // 実API利用時に5問に満たなかった場合だけ不足数を保持（モード時は表示しない）
       setShortfall(!isUsingMock() && batch.length < QUESTIONS_PER_SESSION ? batch.length : 0);
       return true;
     } catch (e) {
@@ -85,7 +72,6 @@ export default function App() {
   const goBack = () => {
     if (phase === 1) setPhase(0);
     else if (phase === 2) setPhase(1);
-    else if (phase === 3) setPhase(2);
     scrollTop();
   };
 
@@ -104,11 +90,6 @@ export default function App() {
       return;
     }
     if (phase === 2) {
-      setPhase(3);
-      scrollTop();
-      return;
-    }
-    if (phase === 3) {
       const ok = await runGenerate();
       if (ok) {
         setPhase(1);
@@ -121,7 +102,6 @@ export default function App() {
   const mainLabel =
     phase === 0 ? '出題する（5問）' :
     phase === 1 ? '答え合わせ' :
-    phase === 2 ? 'MDに書き出す' :
     '次の5問';
 
   return (
@@ -149,7 +129,7 @@ export default function App() {
           <section>
             <h2 className="title">何を練習する？</h2>
             <p className="sub">
-              STEPは〈操作〉の積み上げ。総合モードでは選んだSTEPの中から完全ランダムで出題します（弱点強化用）。
+              STEPは作り方の段階です。総合モードでは選んだSTEPの中から完全ランダムで出題します（弱点強化用）。
             </p>
             <ModeToggle mode={mode} onChange={handleModeChange} />
             <StepSelect mode={mode} selectedSteps={selectedSteps} onToggle={handleToggleStep} />
@@ -178,7 +158,7 @@ export default function App() {
           <section>
             <h2 className="title">答え合わせ</h2>
             <p className="sub">
-              模範解答・ポイント・構造分解（X/Y/Z/V）・糸を確認。AI添削はこの画面では行わず、MDに書き出してデスクトップClaudeへ。
+              模範解答（質問文と答え）を確認しよう。各問の「この問題をMDで出力」を押すと、デスクトップClaudeで添削できるMDをコピーできます。
             </p>
             {items.map((item, i) => (
               <ReviewCard
@@ -190,20 +170,14 @@ export default function App() {
             ))}
           </section>
         )}
-
-        {phase === 3 && (
-          <section>
-            <h2 className="title">MDに書き出す</h2>
-            <p className="sub">
-              問題・自分の回答・模範解答・メタデータを同梱。これをデスクトップClaudeのProjectsに投げると、添削が安定します。
-            </p>
-            <ExportPanel markdown={exportData.markdown} filename={exportData.filename} />
-          </section>
-        )}
       </div>
 
       <div className="bar">
         <div className="bar-inner">
+          <div className="note-1api">
+            <span className="dot" />
+            1セッション = Claude API 1コール（問題＋模範解答をセット生成）
+          </div>
           <div style={{ display: 'flex', gap: 10 }}>
             {phase > 0 && (
               <button type="button" className="btn ghost" onClick={goBack}>
