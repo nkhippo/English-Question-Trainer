@@ -92,6 +92,93 @@ export function normalizeDistractors(raw) {
     .filter(Boolean);
 }
 
+const AUXILIARIES = new Set([
+  'do', 'does', 'did', 'is', 'are', 'am', 'was', 'were', 'been', 'being',
+  'have', 'has', 'had', 'will', 'would', 'shall', 'should', 'can', 'could',
+  'may', 'might', 'must',
+]);
+
+const TENSE_TOPIC_RE =
+  /時制|過去形|現在形|未来|完了形|完了|三単現|活用|原形|do挿入|助動詞|be動詞|be\+ing|進行形|過去(?![問句])|現在|ate|混入|誤用/i;
+
+const NON_TENSE_TOPIC_RE =
+  /語順|前置詞|引き連れ|限定詞|which|what|whose|間接疑問|従属節|平叙|選択|否定|原因|目的|手段|状態|疑問詞|wh/i;
+
+const IRREGULAR_PAST = new Set([
+  'ate', 'went', 'bought', 'chose', 'cooked', 'read', 'made', 'took', 'gave',
+  'saw', 'came', 'got', 'left', 'spoke', 'told', 'found', 'thought', 'knew',
+]);
+
+function normalizeToken(word) {
+  return String(word).toLowerCase().replace(/[^a-z']/g, '');
+}
+
+function isLikelyPastTenseVerb(word) {
+  const w = normalizeToken(word);
+  if (!w || AUXILIARIES.has(w)) return false;
+  if (IRREGULAR_PAST.has(w)) return true;
+  return /ed$/.test(w) && w.length > 3;
+}
+
+/**
+ * @param {Distractor} distractor
+ * @param {string[]} answerTokens
+ */
+export function isTenseRelatedDistractor(distractor, answerTokens) {
+  const label = distractor.label || '';
+  const reason = distractor.reason || '';
+
+  if (NON_TENSE_TOPIC_RE.test(label) && !TENSE_TOPIC_RE.test(label)) return false;
+  if (/語順|平叙/.test(reason) && !TENSE_TOPIC_RE.test(label)) return false;
+  if (TENSE_TOPIC_RE.test(label) || TENSE_TOPIC_RE.test(reason)) return true;
+
+  const answerSet = new Set(answerTokens.map(normalizeToken));
+  const words = distractor.words.map(normalizeToken).filter(Boolean);
+
+  if (words.some((w) => isLikelyPastTenseVerb(w) && !answerSet.has(w))) return true;
+
+  const tenseMarkers = words.filter((w) => AUXILIARIES.has(w));
+  if (tenseMarkers.length === 0) return false;
+
+  // 助動詞のみ、または助動詞＋過去形動詞の組み合わせは時制誘導とみなす
+  return words.every((w) => AUXILIARIES.has(w) || isLikelyPastTenseVerb(w));
+}
+
+/**
+ * 時制に関する誘導は1問あたり最大1つに制限する。
+ * @param {Distractor[]} distractors
+ * @param {{ step: number, targetGap: string }} meta
+ * @param {string} en
+ * @returns {Distractor[]}
+ */
+function enforceDistractorRules(distractors, meta, en) {
+  const tokens = tokenizeEnglish(en);
+  let list = [...distractors];
+
+  let tenseKept = false;
+  list = list.filter((d) => {
+    if (!isTenseRelatedDistractor(d, tokens)) return true;
+    if (!tenseKept) {
+      tenseKept = true;
+      return true;
+    }
+    return false;
+  });
+
+  const fallbacks = fallbackDistractors({ ...meta, en });
+  for (const candidate of fallbacks) {
+    if (list.length >= 2) break;
+    if (list.some((d) => d.label === candidate.label)) continue;
+    const wouldBeSecondTense =
+      isTenseRelatedDistractor(candidate, tokens) &&
+      list.some((d) => isTenseRelatedDistractor(d, tokens));
+    if (wouldBeSecondTense) continue;
+    list.push(candidate);
+  }
+
+  return list.slice(0, 2);
+}
+
 /**
  * AIが distractors を返さなかった場合のフォールバック（STEP別の概念誤答）。
  * @param {{ step: number, targetGap: string, en: string }} item
@@ -109,10 +196,10 @@ export function fallbackDistractors(item) {
           '主語をたずねる疑問文では助動詞を前に出さず、ふつうの語順のままにします。時制は本動詞の活用に乗せます（×Did who…）。',
       },
       {
-        label: '主語whへのdo挿入',
-        words: ['Do', 'does'],
+        label: '疑問詞の位置の取り違え',
+        words: ['cooked', 'Who'],
         reason:
-          '主語をたずねる疑問文では do/does/did を挿入しません。Who/What の直後に本動詞が続く形になります。',
+          '主語を問う wh は文頭に来ます。Who の直後に本動詞が続く語順を崩すと疑問文になりません。',
       },
     ];
   }
@@ -193,10 +280,10 @@ export function fallbackDistractors(item) {
         '本動詞が be のときは be を主語の前に出します。一般動詞用の do/does は使いません（×Do you are…）。',
     },
     {
-      label: '既存助動詞があるのにdo挿入',
-      words: ['Did'],
+      label: '疑問詞の位置の取り違え',
+      words: ['you', 'Where'],
       reason:
-        'have/will/can など助動詞がすでにあるときは、それを前に出します。さらに do/did を足すのは二重挿入の誤りです（×Do you can…）。',
+        '副詞的な疑問詞は文頭に出します（Where did you…）。where を主語の後に置くのは平叙文や間接疑問の語順です。',
     },
   ];
 }
@@ -211,9 +298,8 @@ export function assembleWordPoolData(en, rawDistractors, meta) {
   let distractors = normalizeDistractors(rawDistractors);
   if (distractors.length < 2) {
     distractors = fallbackDistractors({ ...meta, en });
-  } else {
-    distractors = distractors.slice(0, 2);
   }
+  distractors = enforceDistractorRules(distractors, meta, en);
   const wordPool = buildWordPool(en, distractors);
   return { distractors, wordPool };
 }
