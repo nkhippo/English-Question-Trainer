@@ -54,6 +54,11 @@ export function QuestionCard({ item, index, selectedKeys, onChange }) {
           {built || '下の単語を順にタップして並べよう'}
         </div>
         <div className="built-chips">
+          {selectedKeys?.length > 0 && (
+            <button type="button" className="clear-link" onClick={clearAll}>
+              クリア
+            </button>
+          )}
           {chips.map(({ key, label }, i) => (
             <button
               key={`${key}-${i}`}
@@ -65,11 +70,6 @@ export function QuestionCard({ item, index, selectedKeys, onChange }) {
               {label}
             </button>
           ))}
-          {selectedKeys?.length > 0 && (
-            <button type="button" className="clear-link" onClick={clearAll}>
-              クリア
-            </button>
-          )}
         </div>
       </div>
 

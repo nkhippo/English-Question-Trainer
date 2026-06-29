@@ -430,6 +430,8 @@ p.sub {
   cursor: pointer;
   text-decoration: underline;
   padding: 4px 6px;
+  flex: none;
+  margin-right: 2px;
 }
 
 .clear-link:hover {
