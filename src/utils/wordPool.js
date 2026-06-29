@@ -102,6 +102,28 @@ export function keysToSentence(pool, selectedKeys) {
     .join(' ');
 }
 
+/** 正誤判定用に英文を正規化する */
+export function normalizeAnswerForCompare(sentence) {
+  return String(sentence || '')
+    .trim()
+    .toLowerCase()
+    .replace(/\s+([?!.,;:])/g, '$1')
+    .replace(/\s+/g, ' ');
+}
+
+/**
+ * @param {PoolEntry[]} pool
+ * @param {string[]} selectedKeys
+ * @param {string} modelEn
+ * @returns {boolean}
+ */
+export function isAnswerCorrect(pool, selectedKeys, modelEn) {
+  if (!selectedKeys?.length) return false;
+  const attempt = keysToSentence(pool, selectedKeys).trim();
+  if (!attempt) return false;
+  return normalizeAnswerForCompare(attempt) === normalizeAnswerForCompare(modelEn);
+}
+
 /**
  * @param {PoolEntry[]} pool
  * @param {string[]} selectedKeys

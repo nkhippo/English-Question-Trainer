@@ -267,6 +267,47 @@ p.sub {
   box-shadow: var(--shadow);
 }
 
+.qcard-correct {
+  border-color: var(--t2);
+  background: linear-gradient(180deg, var(--t2bg) 0%, var(--surface) 88px);
+  box-shadow: 0 1px 2px rgba(28, 110, 106, 0.08), 0 8px 24px rgba(28, 110, 106, 0.1);
+}
+
+.qcard-incorrect {
+  border-color: var(--trap);
+  background: linear-gradient(180deg, var(--trapbg) 0%, var(--surface) 88px);
+  box-shadow: 0 1px 2px rgba(178, 58, 92, 0.08), 0 8px 24px rgba(178, 58, 92, 0.1);
+}
+
+.qcard-empty {
+  border-color: #c5c9c3;
+  background: linear-gradient(180deg, var(--surface2) 0%, var(--surface) 72px);
+}
+
+.verdict-badge {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 20px;
+  letter-spacing: 0.4px;
+}
+
+.verdict-badge.correct {
+  background: var(--t2);
+  color: #fff;
+}
+
+.verdict-badge.incorrect {
+  background: var(--trap);
+  color: #fff;
+}
+
+.verdict-badge.empty {
+  background: var(--surface2);
+  color: var(--muted);
+  border: 1px solid var(--hair);
+}
+
 .qhead {
   display: flex;
   align-items: center;
@@ -451,6 +492,29 @@ p.sub {
   border-top: 1px dashed var(--hair);
   margin-top: 14px;
   padding-top: 13px;
+}
+
+.reveal.verdict-correct {
+  border-top-color: rgba(28, 110, 106, 0.35);
+}
+
+.reveal.verdict-incorrect {
+  border-top-color: rgba(178, 58, 92, 0.35);
+}
+
+.ans-row.answer-correct .val.mine {
+  color: var(--t2tx);
+  font-weight: 700;
+}
+
+.ans-row.answer-incorrect .val.mine {
+  color: var(--traptx);
+  font-weight: 700;
+}
+
+.ans-row.answer-empty .val.mine {
+  color: var(--muted);
+  font-style: italic;
 }
 
 .ans-row {

@@ -1,10 +1,20 @@
 import { useMemo, useState } from 'react';
 import { formatQuestionMarkdown } from '../utils/formatExportMarkdown.js';
-import { keysToSentence, usedDistractorSources } from '../utils/wordPool.js';
+import { isAnswerCorrect, keysToSentence, usedDistractorSources } from '../utils/wordPool.js';
+
+const VERDICT_LABEL = {
+  correct: '正解',
+  incorrect: '不正解',
+  empty: '未入力',
+};
 
 export function ReviewCard({ item, index, selectedKeys }) {
   const pool = item.wordPool || [];
-  const mine = keysToSentence(pool, selectedKeys).trim() || '（未入力）';
+  const attemptRaw = keysToSentence(pool, selectedKeys).trim();
+  const hasAnswer = Boolean(attemptRaw);
+  const correct = hasAnswer && isAnswerCorrect(pool, selectedKeys, item.en);
+  const verdict = !hasAnswer ? 'empty' : correct ? 'correct' : 'incorrect';
+  const mine = attemptRaw || '（未入力）';
   const [copied, setCopied] = useState(false);
 
   const usedTrapSources = useMemo(
@@ -25,13 +35,14 @@ export function ReviewCard({ item, index, selectedKeys }) {
   }
 
   return (
-    <div className="qcard">
+    <div className={`qcard qcard-${verdict}`}>
       <div className="qhead">
         <span className="qnum">Q{index + 1}</span>
+        <span className={`verdict-badge ${verdict}`}>{VERDICT_LABEL[verdict]}</span>
       </div>
       <div className="jp">{item.jp}</div>
-      <div className="reveal">
-        <div className="ans-row">
+      <div className={`reveal verdict-${verdict}`}>
+        <div className={`ans-row answer-${verdict}`}>
           <span className="lab">自分の回答</span>
           <span className="val mine">{mine}</span>
         </div>
