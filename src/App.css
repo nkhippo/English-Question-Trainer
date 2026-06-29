@@ -322,9 +322,10 @@ p.sub {
 .built-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 5px;
   align-items: center;
   margin-top: 8px;
+  min-height: 30px;
 }
 
 .word-pool {
@@ -334,16 +335,17 @@ p.sub {
 .pool-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 7px;
+  gap: 5px;
 }
 
 .word-chip {
   border: 1.5px solid var(--hair);
-  border-radius: 8px;
-  padding: 7px 13px;
+  border-radius: 6px;
+  padding: 3px 10px;
   font: inherit;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
+  line-height: 1.35;
   cursor: pointer;
   transition: 0.12s;
   background: #fff;
@@ -372,7 +374,7 @@ p.sub {
   border: 0;
   background: none;
   font: inherit;
-  font-size: 12px;
+  font-size: 11.5px;
   color: var(--muted);
   cursor: pointer;
   text-decoration: underline;

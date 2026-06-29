@@ -54,24 +54,24 @@ export function QuestionCard({ item, index, selectedKeys, onChange }) {
         <div className={`built-sentence${built ? '' : ' empty'}`}>
           {built || '下の単語を順にタップして並べよう'}
         </div>
-        {selectedKeys?.length > 0 && (
-          <div className="built-chips">
-            {chips.map(({ key, label }, i) => (
-                <button
-                  key={`${key}-${i}`}
-                  type="button"
-                  className="word-chip selected"
-                  onClick={() => unpick(key)}
-                  title="タップで戻す"
-                >
-                  {label}
-                </button>
-              ))}
+        <div className="built-chips">
+          {chips.map(({ key, label }, i) => (
+            <button
+              key={`${key}-${i}`}
+              type="button"
+              className="word-chip selected"
+              onClick={() => unpick(key)}
+              title="タップで戻す"
+            >
+              {label}
+            </button>
+          ))}
+          {selectedKeys?.length > 0 && (
             <button type="button" className="clear-link" onClick={clearAll}>
               クリア
             </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       <div className="word-pool">
