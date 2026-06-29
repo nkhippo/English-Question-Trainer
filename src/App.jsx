@@ -166,7 +166,7 @@ export default function App() {
           <section>
             <h2 className="title">答え合わせ</h2>
             <p className="sub">
-              模範解答と照らし合わせよう。誤答誘導語を使った場合は、その理由も確認してね。各問の「MDで出力」でデスクトップClaudeに添削依頼できます。
+              模範解答と照らし合わせよう。誤答誘導語を使った場合は、その理由も確認してね。各問の「Markdownで出力」でデスクトップClaudeに添削依頼できます。
             </p>
             {items.map((item, i) => (
               <ReviewCard
