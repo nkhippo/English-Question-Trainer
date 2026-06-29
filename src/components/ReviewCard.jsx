@@ -12,7 +12,7 @@ export function ReviewCard({ item, index, selectedKeys }) {
     [pool, selectedKeys],
   );
 
-  const { markdown, filename } = formatQuestionMarkdown(item, selectedKeys);
+  const { markdown } = formatQuestionMarkdown(item, selectedKeys);
 
   async function copyMd() {
     try {
@@ -20,17 +20,8 @@ export function ReviewCard({ item, index, selectedKeys }) {
       setCopied(true);
       setTimeout(() => setCopied(false), 1600);
     } catch {
-      // クリップボード不可の環境はダウンロードで代替できる
+      // クリップボード不可の環境では手動コピーが必要
     }
-  }
-
-  function downloadMd() {
-    const blob = new Blob([markdown], { type: 'text/markdown' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(a.href);
   }
 
   return (
@@ -83,10 +74,7 @@ export function ReviewCard({ item, index, selectedKeys }) {
 
         <div className="card-actions">
           <button type="button" className="btn primary sm" onClick={copyMd}>
-            {copied ? 'コピーしました ✓' : 'この問題をMDで出力（コピー）'}
-          </button>
-          <button type="button" className="btn ghost sm" onClick={downloadMd}>
-            ダウンロード
+            {copied ? 'コピーしました ✓' : 'この問題をMarkdownで出力（コピー）'}
           </button>
         </div>
       </div>
