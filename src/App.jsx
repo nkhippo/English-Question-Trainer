@@ -67,12 +67,6 @@ export default function App() {
     }
   };
 
-  const goBack = () => {
-    if (phase === 1) setPhase(0);
-    else if (phase === 2) setPhase(1);
-    scrollTop();
-  };
-
   const next = async () => {
     if (phase === 0) {
       const ok = await runGenerate();
@@ -131,6 +125,16 @@ export default function App() {
             </p>
             <ModeToggle mode={mode} onChange={handleModeChange} />
             <StepSelect mode={mode} selectedSteps={selectedSteps} onToggle={handleToggleStep} />
+            <div className="phase-actions">
+              <button
+                type="button"
+                className="btn primary"
+                disabled={mainDisabled || loading}
+                onClick={next}
+              >
+                {mainLabel}
+              </button>
+            </div>
           </section>
         )}
 
@@ -145,6 +149,16 @@ export default function App() {
                 onChange={handleAttemptChange}
               />
             ))}
+            <div className="phase-actions">
+              <button
+                type="button"
+                className="btn primary"
+                disabled={loading}
+                onClick={next}
+              >
+                {mainLabel}
+              </button>
+            </div>
           </section>
         )}
 
@@ -162,32 +176,18 @@ export default function App() {
                 selectedKeys={attempts[item.id]}
               />
             ))}
+            <div className="phase-actions">
+              <button
+                type="button"
+                className="btn primary"
+                disabled={loading}
+                onClick={next}
+              >
+                {mainLabel}
+              </button>
+            </div>
           </section>
         )}
-      </div>
-
-      <div className="bar">
-        <div className="bar-inner">
-          <div className="note-1api">
-            <span className="dot" />
-            1セッション = Claude API 1コール（問題＋模範解答をセット生成）
-          </div>
-          <div style={{ display: 'flex', gap: 10 }}>
-            {phase > 0 && (
-              <button type="button" className="btn ghost" onClick={goBack}>
-                戻る
-              </button>
-            )}
-            <button
-              type="button"
-              className="btn primary"
-              disabled={mainDisabled || loading}
-              onClick={next}
-            >
-              {mainLabel}
-            </button>
-          </div>
-        </div>
       </div>
     </>
   );
