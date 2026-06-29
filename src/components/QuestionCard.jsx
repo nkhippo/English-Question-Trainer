@@ -19,7 +19,6 @@ export function QuestionCard({ item, index, selectedKeys, onChange }) {
   const pool = item.wordPool || [];
 
   const usedKeys = useMemo(() => new Set(selectedKeys || []), [selectedKeys]);
-  const available = pool.filter((e) => !usedKeys.has(e.key));
   const built = keysToSentence(pool, selectedKeys);
   const chips = useMemo(
     () => selectedLabels(pool, selectedKeys),
@@ -77,16 +76,20 @@ export function QuestionCard({ item, index, selectedKeys, onChange }) {
       <div className="word-pool">
         <div className="builder-label">単語プール（A→Z）</div>
         <div className="pool-chips">
-          {available.map((entry) => (
-            <button
-              key={entry.key}
-              type="button"
-              className="word-chip pool"
-              onClick={() => pick(entry.key)}
-            >
-              {entry.text}
-            </button>
-          ))}
+          {pool.map((entry) => {
+            const used = usedKeys.has(entry.key);
+            return (
+              <button
+                key={entry.key}
+                type="button"
+                className={`word-chip pool${used ? ' used' : ''}`}
+                disabled={used}
+                onClick={() => pick(entry.key)}
+              >
+                {entry.text}
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>

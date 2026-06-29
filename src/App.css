@@ -393,10 +393,20 @@ p.sub {
   color: var(--ink);
 }
 
-.word-chip.pool:hover {
+.word-chip.pool:hover:not(:disabled) {
   border-color: var(--t2);
   background: var(--t2bg);
   transform: translateY(-1px);
+}
+
+.word-chip.pool.used,
+.word-chip.pool:disabled {
+  background: var(--surface2);
+  color: var(--muted);
+  border-color: #e0e3de;
+  opacity: 0.65;
+  cursor: default;
+  transform: none;
 }
 
 .word-chip.selected {
