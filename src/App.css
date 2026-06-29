@@ -665,14 +665,24 @@ pre.md {
 .phase-actions {
   display: flex;
   justify-content: flex-end;
+  gap: 10px;
+  align-items: center;
   margin-top: 10px;
   padding-top: 0;
+}
+
+.phase-actions-dual {
+  justify-content: space-between;
 }
 
 .phase-actions .btn {
   padding: 8px 16px;
   font-size: 13.5px;
   border-radius: 9px;
+}
+
+.phase-actions .btn.ghost {
+  flex: none;
 }
 
 .btn {

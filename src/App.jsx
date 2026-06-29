@@ -46,6 +46,11 @@ export default function App() {
 
   const scrollTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
+  const goTop = useCallback(() => {
+    setPhase(0);
+    scrollTop();
+  }, []);
+
   const runGenerate = async () => {
     setLoading(true);
     setError('');
@@ -149,7 +154,10 @@ export default function App() {
                 onChange={handleAttemptChange}
               />
             ))}
-            <div className="phase-actions">
+            <div className="phase-actions phase-actions-dual">
+              <button type="button" className="btn ghost" onClick={goTop}>
+                TOPに戻る
+              </button>
               <button
                 type="button"
                 className="btn primary"
@@ -176,7 +184,10 @@ export default function App() {
                 selectedKeys={attempts[item.id]}
               />
             ))}
-            <div className="phase-actions">
+            <div className="phase-actions phase-actions-dual">
+              <button type="button" className="btn ghost" onClick={goTop}>
+                TOPに戻る
+              </button>
               <button
                 type="button"
                 className="btn primary"
