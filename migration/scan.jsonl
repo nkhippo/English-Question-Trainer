@@ -1,0 +1,15 @@
+{"path": "FIX_WORK_REPORT.md", "has_frontmatter": false, "existing_frontmatter": null, "body_start_line": 1, "first_h1": "疑問文トレーナー — バリデーション/フォールバック修正 作業報告", "first_commit_date": "2026-06-28T08:57:08+08:00"}
+{"path": "README.md", "has_frontmatter": false, "existing_frontmatter": null, "body_start_line": 1, "first_h1": "English Question Trainer（疑問文トレーナー）", "first_commit_date": "2026-06-28T01:04:13+08:00"}
+{"path": "SPEC2_WORK_REPORT.md", "has_frontmatter": false, "existing_frontmatter": null, "body_start_line": 1, "first_h1": "疑問文トレーナー — 仕様更新（spec2）作業報告", "first_commit_date": "2026-06-28T13:14:30+08:00"}
+{"path": "prompt-dumps/README.md", "has_frontmatter": false, "existing_frontmatter": null, "body_start_line": 1, "first_h1": "prompt-dumps", "first_commit_date": "2026-06-28T01:37:40+08:00"}
+{"path": "prompt-dumps/generate/combined.md", "has_frontmatter": false, "existing_frontmatter": null, "body_start_line": 1, "first_h1": "総合モード例 — 問題生成", "first_commit_date": "2026-06-28T01:37:40+08:00"}
+{"path": "prompt-dumps/generate/step1.md", "has_frontmatter": false, "existing_frontmatter": null, "body_start_line": 1, "first_h1": "Step 1 — 問題生成", "first_commit_date": "2026-06-28T01:37:40+08:00"}
+{"path": "prompt-dumps/generate/step2.md", "has_frontmatter": false, "existing_frontmatter": null, "body_start_line": 1, "first_h1": "Step 2 — 問題生成", "first_commit_date": "2026-06-28T01:37:40+08:00"}
+{"path": "prompt-dumps/generate/step3.md", "has_frontmatter": false, "existing_frontmatter": null, "body_start_line": 1, "first_h1": "Step 3 — 問題生成", "first_commit_date": "2026-06-28T01:37:40+08:00"}
+{"path": "prompt-dumps/generate/step4.md", "has_frontmatter": false, "existing_frontmatter": null, "body_start_line": 1, "first_h1": "Step 4 — 問題生成", "first_commit_date": "2026-06-28T01:37:40+08:00"}
+{"path": "prompt-dumps/generate/step5.md", "has_frontmatter": false, "existing_frontmatter": null, "body_start_line": 1, "first_h1": "Step 5 — 問題生成", "first_commit_date": "2026-06-28T01:37:40+08:00"}
+{"path": "prompt-dumps/generate/step6.md", "has_frontmatter": false, "existing_frontmatter": null, "body_start_line": 1, "first_h1": "Step 6 — 問題生成", "first_commit_date": "2026-06-28T01:37:40+08:00"}
+{"path": "prompt-dumps/generate/step7.md", "has_frontmatter": false, "existing_frontmatter": null, "body_start_line": 1, "first_h1": "Step 7 — 問題生成", "first_commit_date": "2026-06-28T01:37:40+08:00"}
+{"path": "question-trainer-cursor-work-request.md", "has_frontmatter": false, "existing_frontmatter": null, "body_start_line": 1, "first_h1": "Cursor Work-Request — English-Question-Trainer 新規構築", "first_commit_date": "2026-06-28T01:37:40+08:00"}
+{"path": "question-trainer-requirements-design.md", "has_frontmatter": false, "existing_frontmatter": null, "body_start_line": 1, "first_h1": "疑問文トレーナー — 要件定義 & 設計書", "first_commit_date": "2026-06-28T01:37:40+08:00"}
+{"path": "question-trainer-structure-map.md", "has_frontmatter": false, "existing_frontmatter": null, "body_start_line": 1, "first_h1": "疑問文トレーナー — 構造マップ & スコープ確定", "first_commit_date": "2026-06-28T01:37:40+08:00"}

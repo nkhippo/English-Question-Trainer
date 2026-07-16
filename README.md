@@ -1,3 +1,10 @@
+---
+id: pj-2026-06-28-8bc6
+aliases:
+- pj-2026-06-28-8bc6
+title: English Question Trainer（疑問文トレーナー）
+created: '2026-06-28'
+---
 # English Question Trainer（疑問文トレーナー）
 
 疑問文の瞬発産出を鍛える React + Vite アプリ。日本語提示 → 英訳入力 → 模範解答＋根拠の表示 → MDエクスポート。

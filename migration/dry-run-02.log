@@ -1,0 +1,3962 @@
+added_fm FIX_WORK_REPORT.md -> pj-2026-06-28-1151
+--- FIX_WORK_REPORT.md
++++ FIX_WORK_REPORT.md (added_fm pj-2026-06-28-1151)
+
+- # 疑問文トレーナー — バリデーション/フォールバック修正 作業報告
++ ---
+- 
++ id: pj-2026-06-28-1151
+- > **作業日**: 2026-06-28  
++ aliases:
+- > **依頼元**: `qt-cursor-fix-request.md`  
++ - pj-2026-06-28-1151
+- > **対象リポジトリ**: https://github.com/nkhippo/English-Question-Trainer  
++ title: 疑問文トレーナー — バリデーション/フォールバック修正 作業報告
+- > **デプロイ先**: https://nkhippo.github.io/English-Question-Trainer/
++ created: '2026-06-28'
+- 
++ ---
+- ---
++ # 疑問文トレーナー — バリデーション/フォールバック修正 作業報告
+- ## 作業概要
++ > **作業日**: 2026-06-28  
+- 
++ > **依頼元**: `qt-cursor-fix-request.md`  
+- `qt-cursor-fix-request.md` に沿い、バグ修正4点を実施した。新規機能の追加はなし。変更ファイルは4件のみ。
++ > **対象リポジトリ**: https://github.com/nkhippo/English-Question-Trainer  
+- 
++ > **デプロイ先**: https://nkhippo.github.io/English-Question-Trainer/
+- | # | 修正内容 | 変更ファイル |
++ 
+- |---|---|---|
++ ---
+- | Fix 1 | 実API利用時のモック無言補完を廃止し、不足を表面化 | `src/api/claude.js`, `src/App.jsx` |
++ 
+- | Fix 2 | 疑問詞カウントを STEP 別に厳格化（直接=1 / 間接=2） | `src/utils/validateItems.js` |
++ ## 作業概要
+- | Fix 3 | `nuance` の生HTML挿入を廃止し安全描画 | `src/components/ReviewCard.jsx` |
++ 
+- | Fix 4 | `hasDoWithAux` の誤検知を修正（間接疑問が弾かれる既存バグ） | `src/utils/validateItems.js` |
++ `qt-cursor-fix-request.md` に沿い、バグ修正4点を実施した。新規機能の追加はなし。変更ファイルは4件のみ。
+- ---
++ | # | 修正内容 | 変更ファイル |
+- 
++ |---|---|---|
+- ## Fix 1 — 実API利用時のモック無言補完を廃止し、不足を表面化
++ | Fix 1 | 実API利用時のモック無言補完を廃止し、不足を表面化 | `src/api/claude.js`, `src/App.jsx` |
+- 
++ | Fix 2 | 疑問詞カウントを STEP 別に厳格化（直接=1 / 間接=2） | `src/utils/validateItems.js` |
+- ### 問題
++ | Fix 3 | `nuance` の生HTML挿入を廃止し安全描画 | `src/components/ReviewCard.jsx` |
+- 
++ | Fix 4 | `hasDoWithAux` の誤検知を修正（間接疑問が弾かれる既存バグ） | `src/utils/validateItems.js` |
+- `generateBatch` が実API使用時でも5問に満たないと `generateMockBatch` で静かに補完していた。サンプル問題が「本物の出題」に紛れても気づけない。
++ 
+- 
++ ---
+- ### 対応
++ 
+- 
++ ## Fix 1 — 実API利用時のモック無言補完を廃止し、不足を表面化
+- **`src/api/claude.js`**
++ 
+- - 再要求後の mock 補完ブロックを削除
++ ### 問題
+- - 実問のみ（5問未満もあり得る）を返す
++ 
+- - `generateMockBatch` の import はデモモード分岐（`VITE_GAS_PROXY_URL` 未設定時）で引き続き使用
++ `generateBatch` が実API使用時でも5問に満たないと `generateMockBatch` で静かに補完していた。サンプル問題が「本物の出題」に紛れても気づけない。
+- **`src/App.jsx`**
++ ### 対応
+- - `QUESTIONS_PER_SESSION` を import
++ 
+- - `shortfall` state を追加
++ **`src/api/claude.js`**
+- - `runGenerate` で 0件 → エラー表示してフェーズを進めない
++ - 再要求後の mock 補完ブロックを削除
+- - 0 < 件数 < 5 → 進めるが `shortfall` を保持し、不足バナーを表示（デモモード時は出さない）
++ - 実問のみ（5問未満もあり得る）を返す
+- 
++ - `generateMockBatch` の import はデモモード分岐（`VITE_GAS_PROXY_URL` 未設定時）で引き続き使用
+- ---
++ 
+- 
++ **`src/App.jsx`**
+- ## Fix 2 — 疑問詞カウントを STEP 別に厳格化
++ - `QUESTIONS_PER_SESSION` を import
+- 
++ - `shortfall` state を追加
+- ### 問題
++ - `runGenerate` で 0件 → エラー表示してフェーズを進めない
+- 
++ - 0 < 件数 < 5 → 進めるが `shortfall` を保持し、不足バナーを表示（デモモード時は出さない）
+- `countWhWords(en) > 2` で2つまで許容していた。仕様は「高々1つ（間接の従属節whは別扱い）」。
++ 
+- 
++ ---
+- ### 対応
++ 
+- 
++ ## Fix 2 — 疑問詞カウントを STEP 別に厳格化
+- ```js
++ 
+- const whLimit = step === 6 ? 2 : 1;   // 直接疑問=1、間接(STEP6)のみ2
++ ### 問題
+- if (countWhWords(en) > whLimit) { invalidCount++; continue; }
++ 
+- ```
++ `countWhWords(en) > 2` で2つまで許容していた。仕様は「高々1つ（間接の従属節whは別扱い）」。
+- ---
++ ### 対応
+- ## Fix 3 — `nuance` の生HTML挿入を廃止し安全描画
++ ```js
+- 
++ const whLimit = step === 6 ? 2 : 1;   // 直接疑問=1、間接(STEP6)のみ2
+- ### 問題
++ if (countWhWords(en) > whLimit) { invalidCount++; continue; }
+- 
++ ```
+- `ReviewCard` が `dangerouslySetInnerHTML` で `nuance`（生成テキスト）をHTML挿入していた。
++ 
+- 
++ ---
+- ### 対応
++ 
+- 
++ ## Fix 3 — `nuance` の生HTML挿入を廃止し安全描画
+- - `<b>…</b>` のみ `<strong>` に変換する `renderNuance()` を導入
++ 
+- - 他の文字列は React によるエスケープ描画
++ ### 問題
+- - `dangerouslySetInnerHTML` を撤去
++ 
+- 
++ `ReviewCard` が `dangerouslySetInnerHTML` で `nuance`（生成テキスト）をHTML挿入していた。
+- ---
++ 
+- 
++ ### 対応
+- ## Fix 4 — `hasDoWithAux` の誤検知を修正 ★重要
++ 
+- 
++ - `<b>…</b>` のみ `<strong>` に変換する `renderNuance()` を導入
+- ### 問題（既存バグ）
++ - 他の文字列は React によるエスケープ描画
+- 
++ - `dangerouslySetInnerHTML` を撤去
+- 「Do you know where the station is?」のような正しい間接疑問を、主節の `Do` と従属節の `is` を「do＋助動詞の誤用」と誤検知して弾いていた。「Did you have lunch?」も `have` を助動詞扱いして誤って弾いていた。STEP6 の有効問が大量に除外され、Fix 1 の不足表面化（＝出題が痩せる）を誘発していた。
++ 
+- 
++ ---
+- ### 対応
++ 
+- 
++ ## Fix 4 — `hasDoWithAux` の誤検知を修正 ★重要
+- do挿入が同一節内で be形・法助動詞を直接従える誤用だけを検出する正規表現に変更:
++ 
+- 
++ ### 問題（既存バグ）
+- ```js
++ 
+- const DO_PLUS_FINITE_AUX =
++ 「Do you know where the station is?」のような正しい間接疑問を、主節の `Do` と従属節の `is` を「do＋助動詞の誤用」と誤検知して弾いていた。「Did you have lunch?」も `have` を助動詞扱いして誤って弾いていた。STEP6 の有効問が大量に除外され、Fix 1 の不足表面化（＝出題が痩せる）を誘発していた。
+-   /\b(do|does|did)\s+(?:\w+\s+){0,2}?(is|are|am|was|were|been|being|can|could|will|would|shall|should|may|might|must)\b/i;
++ 
+- function hasDoWithAux(en) { return DO_PLUS_FINITE_AUX.test(en); }
++ ### 対応
+- ```
++ 
+- 
++ do挿入が同一節内で be形・法助動詞を直接従える誤用だけを検出する正規表現に変更:
+- - 主語は最大2語まで許容
++ 
+- - `have/has/had` は本動詞用法（Did you have lunch?）が正当なので除外
++ ```js
+- - 従属節の be/助動詞（Do you know where the station is?）を誤検出しない
++ const DO_PLUS_FINITE_AUX =
+- 
++   /\b(do|does|did)\s+(?:\w+\s+){0,2}?(is|are|am|was|were|been|being|can|could|will|would|shall|should|may|might|must)\b/i;
+- ---
++ function hasDoWithAux(en) { return DO_PLUS_FINITE_AUX.test(en); }
+- 
++ ```
+- ## 検証結果
++ 
+- 
++ - 主語は最大2語まで許容
+- ### ビルド
++ - `have/has/had` は本動詞用法（Did you have lunch?）が正当なので除外
+- 
++ - 従属節の be/助動詞（Do you know where the station is?）を誤検出しない
+- ```
++ 
+- npm run build → 成功
++ ---
+- ```
++ 
+- 
++ ## 検証結果
+- ### `validateItems` 回帰テスト（8/8 通過）
++ 
+- 
++ ### ビルド
+- | 入力（en, step） | 期待 | 結果 |
++ 
+- |---|---|---|
++ ```
+- | `What did you buy?` (3) | KEEP | ✅ |added_fm README.md -> pj-2026-06-28-8bc6
+added_fm SPEC2_WORK_REPORT.md -> pj-2026-06-28-248a
+
++ npm run build → 成功
+- | `Who bought what?` (3) | DROP（直接で疑問詞2つ） | ✅ |
++ ```
+- | `Do you know where the station is?` (6) | KEEP（Fix 4） | ✅ |
++ 
+- | `Did you have lunch?` (1) | KEEP（Fix 4） | ✅ |
++ ### `validateItems` 回帰テスト（8/8 通過）
+- | `Did you ask what time it is?` (6) | KEEP | ✅ |
++ 
+- | `Do you can swim?` (1) | DROP | ✅ |
++ | 入力（en, step） | 期待 | 結果 |
+- | `Does she is going?` (1) | DROP | ✅ |
++ |---|---|---|
+- | `Why did you go?` / answerSense なし (4) | DROP | ✅ |
++ | `What did you buy?` (3) | KEEP | ✅ |
+- 
++ | `Who bought what?` (3) | DROP（直接で疑問詞2つ） | ✅ |
+- ### UI（手動確認推奨）
++ | `Do you know where the station is?` (6) | KEEP（Fix 4） | ✅ |
+- 
++ | `Did you have lunch?` (1) | KEEP（Fix 4） | ✅ |
+- - [ ] `VITE_GAS_PROXY_URL` 設定時、生成が5問未満なら不足バナーが出る
++ | `Did you ask what time it is?` (6) | KEEP | ✅ |
+- - [ ] デモモード時は不足バナーを出さない
++ | `Do you can swim?` (1) | DROP | ✅ |
+- - [ ] 答え合わせ画面で `nuance` の `<b>` 強調が `<strong>` として表示される
++ | `Does she is going?` (1) | DROP | ✅ |
+- 
++ | `Why did you go?` / answerSense なし (4) | DROP | ✅ |
+- ---
++ 
+- 
++ ### UI（手動確認推奨）
+- ## デプロイ
++ 
+- 
++ - [ ] `VITE_GAS_PROXY_URL` 設定時、生成が5問未満なら不足バナーが出る
+- - ブランチ: `main`
++ - [ ] デモモード時は不足バナーを出さない
+- - GitHub Actions: `Deploy to GitHub Pages` workflow により自動デプロイ
++ - [ ] 答え合わせ画面で `nuance` の `<b>` 強調が `<strong>` として表示される
+- - 公開 URL: https://nkhippo.github.io/English-Question-Trainer/
++ 
+- 
++ ---
+- ---
++ 
+- 
++ ## デプロイ
+- ## コミットメッセージ
++ 
+- 
++ - ブランチ: `main`
+- ```
++ - GitHub Actions: `Deploy to GitHub Pages` workflow により自動デプロイ
+- fix: 実APIモードのmock無言補完を廃止し不足を表面化 / 疑問詞カウントをSTEP別に厳格化 / nuanceの生HTML描画を撤去 / hasDoWithAuxの間接疑問誤検知を修正
++ - 公開 URL: https://nkhippo.github.io/English-Question-Trainer/
+- ```
++ 
++ ---
++ 
++ ## コミットメッセージ
++ 
++ ```
++ fix: 実APIモードのmock無言補完を廃止し不足を表面化 / 疑問詞カウントをSTEP別に厳格化 / nuanceの生HTML描画を撤去 / hasDoWithAuxの間接疑問誤検知を修正
++ ```
+--- README.md
++++ README.md (added_fm pj-2026-06-28-8bc6)
+
+- # English Question Trainer（疑問文トレーナー）
++ ---
+- 
++ id: pj-2026-06-28-8bc6
+- 疑問文の瞬発産出を鍛える React + Vite アプリ。日本語提示 → 英訳入力 → 模範解答＋根拠の表示 → MDエクスポート。
++ aliases:
+- 
++ - pj-2026-06-28-8bc6
+- **GitHub Pages:** https://nkhippo.github.io/English-Question-Trainer/
++ title: English Question Trainer（疑問文トレーナー）
+- 
++ created: '2026-06-28'
+- ## スタック
++ ---
+- 
++ # English Question Trainer（疑問文トレーナー）
+- - React 18 + Vite 6
++ 
+- - GitHub Pages デプロイ（`.github/workflows/deploy.yml`）
++ 疑問文の瞬発産出を鍛える React + Vite アプリ。日本語提示 → 英訳入力 → 模範解答＋根拠の表示 → MDエクスポート。
+- - Claude API（Google Apps Script プロキシ経由、1セッション1コール）
++ 
+- 
++ **GitHub Pages:** https://nkhippo.github.io/English-Question-Trainer/
+- ## 開発
++ 
+- 
++ ## スタック
+- ```bash
++ 
+- npm install
++ - React 18 + Vite 6
+- npm run dev
++ - GitHub Pages デプロイ（`.github/workflows/deploy.yml`）
+- ```
++ - Claude API（Google Apps Script プロキシ経由、1セッション1コール）
+- ## ビルド
++ ## 開発
+- npm run build
++ npm install
+- ```
++ npm run dev
+- 
++ ```
+- 本番ビルドでは `VITE_GAS_PROXY_URL` に GAS ウェブアプリ URL を設定する。未設定時はプロトタイプ由来のモック問題で動作する。
++ 
+- 
++ ## ビルド
+- フロントから GAS へは `Content-Type: text/plain` で POST する（`application/json` だと CORS プリフライトでブロックされる）。
++ 
+- 
++ ```bash
+- ## GAS プロキシ
++ npm run build
+- 
++ ```
+- 1. `gas/proxy.gs` を Google Apps Script にコピー
++ 
+- 2. Script Properties に `CLAUDE_API_KEY` を設定
++ 本番ビルドでは `VITE_GAS_PROXY_URL` に GAS ウェブアプリ URL を設定する。未設定時はプロトタイプ由来のモック問題で動作する。
+- 3. ウェブアプリとしてデプロイ（実行ユーザー=自分、アクセス=全員）
++ 
+- 4. デプロイ URL を GitHub Secrets の `VITE_GAS_PROXY_URL` に登録
++ フロントから GAS へは `Content-Type: text/plain` で POST する（`application/json` だと CORS プリフライトでブロックされる）。
+- ## 設計ドキュメント（正本）
++ ## GAS プロキシ
+- | ファイル | 内容 |
++ 1. `gas/proxy.gs` を Google Apps Script にコピー
+- |---|---|
++ 2. Script Properties に `CLAUDE_API_KEY` を設定
+- | `question-trainer-requirements-design.md` | 要件・設計 |
++ 3. ウェブアプリとしてデプロイ（実行ユーザー=自分、アクセス=全員）
+- | `question-trainer-structure-map.md` | 構造マップ・STEP定義 |
++ 4. デプロイ URL を GitHub Secrets の `VITE_GAS_PROXY_URL` に登録
+- | `question-trainer-decision-tree.svg` | 生成ロジック分岐図 |
++ 
+- | `question-trainer-prototype.html` | UI視覚的正本 |
++ ## 設計ドキュメント（正本）
+- | `question-trainer-cursor-work-request.md` | 実装引き渡し |
++ 
+- | `WORK_REPORT.md` | Questions アプリ（旧 HTML 版）改修レポート |
++ | ファイル | 内容 |
+- 
++ |---|---|
+- ## プロンプトダンプ
++ | `question-trainer-requirements-design.md` | 要件・設計 |
+- 
++ | `question-trainer-structure-map.md` | 構造マップ・STEP定義 |
+- ```bash
++ | `question-trainer-decision-tree.svg` | 生成ロジック分岐図 |
+- npm run dump-prompts
++ | `question-trainer-prototype.html` | UI視覚的正本 |
+- ```
++ | `question-trainer-cursor-work-request.md` | 実装引き渡し |
+- 
++ | `WORK_REPORT.md` | Questions アプリ（旧 HTML 版）改修レポート |
+- `prompt-dumps/generate/` に各 STEP の生成プロンプトを出力する。
++ 
++ ## プロンプトダンプ
++ 
++ ```bash
++ npm run dump-prompts
++ ```
++ 
++ `prompt-dumps/generate/` に各 STEP の生成プロンプトを出力する。
+--- SPEC2_WORK_REPORT.md
++++ SPEC2_WORK_REPORT.md (added_fm pj-2026-06-28-248a)
+
+- # 疑問文トレーナー — 仕様更新（spec2）作業報告
++ ---
+- 
++ id: pj-2026-06-28-248a
+- > **作業日**: 2026-06-28  
++ aliases:
+- > **依頼元**: `qt-spec2-cursor-request.md`  
++ - pj-2026-06-28-248a
+- > **正本**: `question-trainer-requirements-design.md`（§5-3 / §6 / §7 / §10 更新版）  
++ title: 疑問文トレーナー — 仕様更新（spec2）作業報告
+- > **対象リポジトリ**: https://github.com/nkhippo/English-Question-Trainer  
++ created: '2026-06-28'
+- > **デプロイ先**: https://nkhippo.github.io/English-Question-Trainer/
++ ---
+- 
++ # 疑問文トレーナー — 仕様更新（spec2）作業報告
+- ---
++ 
+- 
++ > **作業日**: 2026-06-28  
+- ## 作業概要
++ > **依頼元**: `qt-spec2-cursor-request.md`  
+- 
++ > **正本**: `question-trainer-requirements-design.md`（§5-3 / §6 / §7 / §10 更新版）  
+- 3つの仕様変更を一括実施した。
++ > **対象リポジトリ**: https://github.com/nkhippo/English-Question-Trainer  
+- 
++ > **デプロイ先**: https://nkhippo.github.io/English-Question-Trainer/
+- | # | 内容 | 主な変更 |
++ 
+- |---|---|---|
++ ---
+- | ① | 用語の平易化 | STEP名・説明・プロンプト出力を平易日本語に。画面・MDから「糸」「X/Y/Z/V」を撤去 |
++ 
+- | ② | 1問ずつMD出力 | 一括エクスポート画面を廃止し、答え合わせカードごとに貼付プロンプト形式MDをコピー/DL |
++ ## 作業概要
+- | ③ | 表示の最小化 | 答え合わせは「自分の回答／模範（質問文・回答文）／MDボタン」のみ。4→3フェーズ |
++ 
+- 
++ 3つの仕様変更を一括実施した。
+- ---
++ 
+- 
++ | # | 内容 | 主な変更 |
+- ## 変更ファイル一覧
++ |---|---|---|
+- 
++ | ① | 用語の平易化 | STEP名・説明・プロンプト出力を平易日本語に。画面・MDから「糸」「X/Y/Z/V」を撤去 |
+- | 種別 | ファイル |
++ | ② | 1問ずつMD出力 | 一括エクスポート画面を廃止し、答え合わせカードごとに貼付プロンプト形式MDをコピー/DL |
+- |---|---|
++ | ③ | 表示の最小化 | 答え合わせは「自分の回答／模範（質問文・回答文）／MDボタン」のみ。4→3フェーズ |
+- | 全文差替 | `src/constants/steps.js` |
++ 
+- | 全文差替 | `src/components/StepSelect.jsx` |
++ ---
+- | 全文差替 | `src/components/ProgressRail.jsx` |
++ 
+- | 全文差替 | `src/components/ReviewCard.jsx` |
++ ## 変更ファイル一覧
+- | 全文差替 | `src/utils/formatExportMarkdown.js` |
++ 
+- | FIND/REPLACE | `src/App.jsx` |
++ | 種別 | ファイル |
+- | FIND/REPLACE | `src/prompts/shared.js` |
++ |---|---|
+- | FIND/REPLACE | `src/prompts/generate.js` |
++ | 全文差替 | `src/constants/steps.js` |
+- | 追記 | `src/App.css` |
++ | 全文差替 | `src/components/StepSelect.jsx` |
+- | 削除 | `src/components/ThreadTag.jsx` |
++ | 全文差替 | `src/components/ProgressRail.jsx` |
+- | 削除 | `src/components/ExportPanel.jsx` |
++ | 全文差替 | `src/components/ReviewCard.jsx` |
+- | 更新 | `question-trainer-requirements-design.md` |
++ | 全文差替 | `src/utils/formatExportMarkdown.js` |
+- | 再生成 | `prompt-dumps/generate/*.md` |
++ | FIND/REPLACE | `src/App.jsx` |
+- 
++ | FIND/REPLACE | `src/prompts/shared.js` |
+- ---
++ | FIND/REPLACE | `src/prompts/generate.js` |
+- 
++ | 追記 | `src/App.css` |
+- ## ① 用語の平易化
++ | 削除 | `src/components/ThreadTag.jsx` |
+- 
++ | 削除 | `src/components/ExportPanel.jsx` |
+- ### 画面
++ | 更新 | `question-trainer-requirements-design.md` |
+- 
++ | 再生成 | `prompt-dumps/generate/*.md` |
+- - STEPカード: 操作タグ（`ThreadTag`）を撤去。番号・名前・説明・チェックのみ
++ 
+- - STEP名・説明を平易表記に変更（例: 「wh・主語以外を聞く」→「主語以外をたずねる疑問文」）
++ ---
+- - 選択画面・答え合わせ画面の説明文から独自用語を除去
++ 
+- 
++ ## ① 用語の平易化
+- ### プロンプト
++ 
+- 
++ ### 画面
+- - `shared.js`: nuance/note は平易日本語で書くルールを追加
++ 
+- - `generate.js`: STEP定義注入から `糸:` を除去。nuance/note ルールを平易化
++ - STEPカード: 操作タグ（`ThreadTag`）を撤去。番号・名前・説明・チェックのみ
+- 
++ - STEP名・説明を平易表記に変更（例: 「wh・主語以外を聞く」→「主語以外をたずねる疑問文」）
+- ### 内部コード
++ - 選択画面・答え合わせ画面の説明文から独自用語を除去
+- - `thread` / `role` は JSON フィールドに維持（生成・バリデーション用）
++ ### プロンプト
+- - 表示・MD出力時のみ `GAP_PLAIN` / `ROLE_PLAIN` / `stripJargon()` で変換
++ 
+- 
++ - `shared.js`: nuance/note は平易日本語で書くルールを追加
+- ---
++ - `generate.js`: STEP定義注入から `糸:` を除去。nuance/note ルールを平易化
+- ## ② 1問ずつMD出力（貼付プロンプト形式）
++ ### 内部コード
+- ### 廃止
++ - `thread` / `role` は JSON フィールドに維持（生成・バリデーション用）
+- 
++ - 表示・MD出力時のみ `GAP_PLAIN` / `ROLE_PLAIN` / `stripJargon()` で変換
+- - フェーズ4「MDに書き出す」画面
++ 
+- - `ExportPanel.jsx` コンポーネント
++ ---
+- - 一括 `formatExportMarkdown()` 関数
++ 
+- 
++ ## ② 1問ずつMD出力（貼付プロンプト形式）
+- ### 新設
++ 
+- 
++ ### 廃止
+- - `formatQuestionMarkdown(item, attempt)` — 1問ぶんのMD生成
++ 
+- - `ReviewCard` に「この問題をMDで出力（コピー）」＋「ダウンロード」ボタン
++ - フェーズ4「MDに書き出す」画面
+- 
++ - `ExportPanel.jsx` コンポーネント
+- ### MD形式（§10 準拠）
++ - 一括 `formatExportMarkdown()` 関数
+- Projects に貼るだけで次の3点をClaudeに解説させる指示文を内包:
++ ### 新設
+- 1. 私の回答の添削
++ - `formatQuestionMarkdown(item, attempt)` — 1問ぶんのMD生成
+- 2. 模範解答がなぜ正しいのか
++ - `ReviewCard` に「この問題をMDで出力（コピー）」＋「ダウンロード」ボタン
+- 3. その他の表現方法
++ 
+- 
++ ### MD形式（§10 準拠）
+- 参考セクションに「出題のねらい」「模範解答のポイント」「文の組み立て」を平易表記で同梱。
++ 
+- 
++ Projects に貼るだけで次の3点をClaudeに解説させる指示文を内包:
+- ---
++ 
+- 
++ 1. 私の回答の添削
+- ## ③ 表示の最小化・3フェーズ化
++ 2. 模範解答がなぜ正しいのか
+- 
++ 3. その他の表現方法
+- ### フェーズ遷移
++ 
+- 
++ 参考セクションに「出題のねらい」「模範解答のポイント」「文の組み立て」を平易表記で同梱。
+- ```
++ 
+- select → answer → review
++ ---
+-   │        │         │
++ 
+-   │        │         └ 「次の5問」→ 再生成 → answer
++ ## ③ 表示の最小化・3フェーズ化
+-   │        └ 「答え合わせ」
++ 
+-   └ 「出題する（5問）」
++ ### フェーズ遷移
+- ```
++ 
+- 
++ ```
+- - 進捗バー: 4セグメント → **3セグメント**
++ select → answer → review
+- - review画面の主ボタン: **「次の5問」**（旧: 「MDに書き出す」→別フェーズ）
++   │        │         │
+- 
++   │        │         └ 「次の5問」→ 再生成 → answer
+- ### 答え合わせカードの表示要素
++   │        └ 「答え合わせ」
+- 
++   └ 「出題する（5問）」
+- - 自分の回答
++ ```
+- - 模範解答（質問文）
++ 
+- - 模範解答（回答文）— 該当STEPのみ
++ - 進捗バー: 4セグメント → **3セグメント**
+- - MD出力ボタン
++ - review画面の主ボタン: **「次の5問」**（旧: 「MDに書き出す」→別フェーズ）
+- **非表示**（MDの参考セクションに回す）: nuance・targetGapメタ・構造分解・操作タグ
++ ### 答え合わせカードの表示要素
+- ---
++ - 自分の回答
+- 
++ - 模範解答（質問文）
+- ## 検証結果
++ - 模範解答（回答文）— 該当STEPのみ
+- 
++ - MD出力ボタン
+- | 項目 | 結果 |
++ 
+- |---|---|
++ **非表示**（MDの参考セクションに回す）: nuance・targetGapメタ・構造分解・操作タグ
+- | `npm run build` | ✅ 成功 |
++ 
+- | `npm run dump-prompts` | ✅ 成功（プロンプトダンプ再生成） |
++ ---
+- | 画面に「糸」「X/Y/Z/V」が出ない | ✅（`src/components`・`App.jsx` の表示文言を確認） |
++ 
+- | MD出力に独自用語が出ない | ✅（`stripJargon` で糸系を平易化。役割は「名詞/動詞/副詞」表記） |
++ ## 検証結果
+- | 貼付プロンプト形式 | ✅（3点解説指示＋出題/回答/模範/参考セクション） |
++ 
+- 
++ | 項目 | 結果 |
+- ---
++ |---|---|
+- 
++ | `npm run build` | ✅ 成功 |
+- ## デプロイ
++ | `npm run dump-prompts` | ✅ 成功（プロンプトダンプ再生成） |
+- 
++ | 画面に「糸」「X/Y/Z/V」が出ない | ✅（`src/components`・`App.jsx` の表示文言を確認） |
+- - ブランチ: `main`
++ | MD出力に独自用語が出ない | ✅（`stripJargon` で糸系を平易化。役割は「名詞/動詞/副詞」表記） |
+- - GitHub Actions により自動デプロイ
++ | 貼付プロンプト形式 | ✅（3点解説指示＋出題/回答/模範/参考セクション） |
+- - 公開 URL: https://nkhippo.github.io/English-Question-Trainer/
++ 
+- 
++ ---
+- ---
++ 
+- 
++ ## デプロイ
+- ## コミットメッセージ
++ 
+- 
++ - ブランチ: `main`
+- ```
++ - GitHub Actions により自動デプロイ
+- feat: サイト表示・MD出力から独自用語(糸/XYZ)を撤去し平易表記に / MD出力を1問ずつの貼付プロンプト形式に変更(添削・模範の理由・別表現を内包) / 答え合わせ画面の表示を最小要素に簡素化(エクスポート画面を廃止)added_fm prompt-dumps/README.md -> pj-2026-06-28-c828
+added_fm prompt-dumps/generate/combined.md -> pj-2026-06-28-9fb9
+
++ - 公開 URL: https://nkhippo.github.io/English-Question-Trainer/
+- ```
++ 
++ ---
++ 
++ ## コミットメッセージ
++ 
++ ```
++ feat: サイト表示・MD出力から独自用語(糸/XYZ)を撤去し平易表記に / MD出力を1問ずつの貼付プロンプト形式に変更(添削・模範の理由・別表現を内包) / 答え合わせ画面の表示を最小要素に簡素化(エクスポート画面を廃止)
++ ```
+--- prompt-dumps/README.md
++++ prompt-dumps/README.md (added_fm pj-2026-06-28-c828)
+
+- # prompt-dumps
++ ---
+- 
++ id: pj-2026-06-28-c828
+- `npm run dump-prompts` で `src/prompts/generate.js` から生成プロンプトを Markdown に書き出す。
++ aliases:
+- 
++ - pj-2026-06-28-c828
+- - `generate/step1.md` … `step7.md` — 各STEP個別
++ title: prompt-dumps
+- - `generate/combined.md` — 総合モード例
++ created: '2026-06-28'
++ ---
++ # prompt-dumps
++ 
++ `npm run dump-prompts` で `src/prompts/generate.js` から生成プロンプトを Markdown に書き出す。
++ 
++ - `generate/step1.md` … `step7.md` — 各STEP個別
++ - `generate/combined.md` — 総合モード例
+--- prompt-dumps/generate/combined.md
++++ prompt-dumps/generate/combined.md (added_fm pj-2026-06-28-9fb9)
+
+- # 総合モード例 — 問題生成
++ ---
+- 
++ id: pj-2026-06-28-9fb9
+- - 生成元: `buildGeneratePrompt()`
++ aliases:
+- - 対象STEP: 1, 3, 4, 6
++ - pj-2026-06-28-9fb9
+- 
++ title: 総合モード例 — 問題生成
+- ## System
++ created: '2026-06-28'
+- 
++ ---
+- ```
++ # 総合モード例 — 問題生成
+- あなたは英語教育の専門家であり、疑問文産出ドリルの作問者です。
++ 
+- 学習者は日本語を読んで瞬発的に英語の疑問文を作る訓練をしています。
++ - 生成元: `buildGeneratePrompt()`
+- 指定された STEP（操作）とシーンに沿って、出題用の日本語文と、その模範解答・根拠を生成してください。
++ - 対象STEP: 1, 3, 4, 6
+- 必ず有効なJSONのみを返してください。マークダウンや説明文は一切含めないでください。
++ 
+- 
++ ## System
+- JSONの厳守ルール（grading-prompt.md と同一）:
++ 
+- - 文字列値はダブルクォートのみ使用（シングルクォート不可）
++ ```
+- - nuance/note 内で英文・英単語を引用するときは『』を使い、ダブルクォート(")は使わない
++ あなたは英語教育の専門家であり、疑問文産出ドリルの作問者です。
+- - 末尾カンマ禁止 / 生の改行禁止（必要なら \n）
++ 学習者は日本語を読んで瞬発的に英語の疑問文を作る訓練をしています。
+- - nuance と parts[].note は**平易な日本語**で書く。独自用語『糸／糸1／糸2』『X/Y/Z/V』は使わず、『助動詞を主語の前に出す』『疑問詞を文頭に動かす』『時を表す語句』のように日常語で説明する（role/thread のコードはJSONフィールドにのみ残す）
++ 指定された STEP（操作）とシーンに沿って、出題用の日本語文と、その模範解答・根拠を生成してください。
+- 
++ 必ず有効なJSONのみを返してください。マークダウンや説明文は一切含めないでください。
+- 作問の絶対ルール（取りこぼし厳禁）:
++ 
+- - 1文につき疑問詞は1つ（2つ同時に問わない）
++ JSONの厳守ルール（grading-prompt.md と同一）:
+- - 糸1（助動詞前置）は3機構を正しく使い分ける：本動詞が be→be前出 / 既存助動詞→それを前出 / 一般動詞で助動詞なし→do/does/did を挿入（be・既存助動詞があるとき do は使わない）
++ - 文字列値はダブルクォートのみ使用（シングルクォート不可）
+- - 主語を問う wh では糸1を起動しない（語順そのまま・時制は本動詞の活用に乗せる）
++ - nuance/note 内で英文・英単語を引用するときは『』を使い、ダブルクォート(")は使わない
+- - 間接疑問では従属節の糸1を解除する（do を消し平叙語順）。疑問詞は節頭に保持
++ - 末尾カンマ禁止 / 生の改行禁止（必要なら \n）
+- - 複雑な関係詞修飾で疑問文を飾り立てない（瞬発訓練の阻害）
++ - nuance と parts[].note は**平易な日本語**で書く。独自用語『糸／糸1／糸2』『X/Y/Z/V』は使わず、『助動詞を主語の前に出す』『疑問詞を文頭に動かす』『時を表す語句』のように日常語で説明する（role/thread のコードはJSONフィールドにのみ残す）
+- 一意性ルール（最重要）:
++ 作問の絶対ルール（取りこぼし厳禁）:
+- - 出題日本語は、targetGap で指定した1つのスロットだけが答えになるよう、曖昧さなく書く
++ - 1文につき疑問詞は1つ（2つ同時に問わない）
+- - targetGap が when/where/why/how のときは answerSense も固定し、その意味に一意に収束する日本語にする
++ - 糸1（助動詞前置）は3機構を正しく使い分ける：本動詞が be→be前出 / 既存助動詞→それを前出 / 一般動詞で助動詞なし→do/does/did を挿入（be・既存助動詞があるとき do は使わない）
+-   （例：why で purpose を狙うなら「何のために」と書き、cause と混ざらないようにする）
++ - 主語を問う wh では糸1を起動しない（語順そのまま・時制は本動詞の活用に乗せる）
+- ```
++ - 間接疑問では従属節の糸1を解除する（do を消し平叙語順）。疑問詞は節頭に保持
+- 
++ - 複雑な関係詞修飾で疑問文を飾り立てない（瞬発訓練の阻害）
+- ## User
++ 
+- 
++ 一意性ルール（最重要）:
+- ```
++ - 出題日本語は、targetGap で指定した1つのスロットだけが答えになるよう、曖昧さなく書く
+- 次の条件で疑問文ドリルを 5 問つくってください。
++ - targetGap が when/where/why/how のときは answerSense も固定し、その意味に一意に収束する日本語にする
+- 
++   （例：why で purpose を狙うなら「何のために」と書き、cause と混ざらないようにする）
+- - 対象STEP: 1, 3, 4, 6
++ ```
+- - STEP定義:
++ 
+- STEP 1: Yes/No 疑問文 — 「はい/いいえ」で答える。助動詞を主語の前に出す。targetGap候補: yesno
++ ## User
+- STEP 3: 主語以外をたずねる疑問文 — 「何を・どこで」など。助動詞を前に出し、疑問詞を文頭へ。targetGap候補: object / complement / when / where / why / how
++ 
+- STEP 4: 理由・方法・時・場所をたずねる — why / how / when / where と、その答え方。targetGap候補: when / where / why / how（answerSentence必須）
++ ```
+- STEP 6: 間接疑問 — 文の中に疑問を埋め込む（Do you know where … ?）。targetGap候補: 従属節gap / 疑問詞+to不定詞
++ 次の条件で疑問文ドリルを 5 問つくってください。
+- - 使用してよいシーン（彩り・話題は固定しない／毎問ランダムに1つ選ぶ）:
++ 
+- 【A 生活者共通】道聞き、買い物、寮生活、雑談、教室、空港、レストラン
++ - 対象STEP: 1, 3, 4, 6
+- 【B ペルソナ】留学生活、職場、家庭、旅行
++ - STEP定義:
+- 【B' ロジカルシンキング】自己と将来、語学学校、キャリア
++ STEP 1: Yes/No 疑問文 — 「はい/いいえ」で答える。助動詞を主語の前に出す。targetGap候補: yesno
+- 【C 機能軸（functionTag）】確認する、情報を得る、理由・目的を問う、方法を問う、申し出る、提案する
++ STEP 3: 主語以外をたずねる疑問文 — 「何を・どこで」など。助動詞を前に出し、疑問詞を文頭へ。targetGap候補: object / complement / when / where / why / how
+- ※ 各問は上記からランダムに sceneTag と functionTag を1つずつ選ぶ。MECE非保証・重複容認。
++ STEP 4: 理由・方法・時・場所をたずねる — why / how / when / where と、その答え方。targetGap候補: when / where / why / how（answerSentence必須）added_fm prompt-dumps/generate/step1.md -> pj-2026-06-28-3236
+
+- ※ 仮定法系（layer:2）は初版では出題しない。
++ STEP 6: 間接疑問 — 文の中に疑問を埋め込む（Do you know where … ?）。targetGap候補: 従属節gap / 疑問詞+to不定詞
+- - 時制は以下の核5時制から各問に割り当てて散らす:
++ - 使用してよいシーン（彩り・話題は固定しない／毎問ランダムに1つ選ぶ）:
+- - 現在（do/does）
++ 【A 生活者共通】道聞き、買い物、寮生活、雑談、教室、空港、レストラン
+- - 過去（did）
++ 【B ペルソナ】留学生活、職場、家庭、旅行
+- - be（is/are/was/were）
++ 【B' ロジカルシンキング】自己と将来、語学学校、キャリア
+- - 未来（will）
++ 【C 機能軸（functionTag）】確認する、情報を得る、理由・目的を問う、方法を問う、申し出る、提案する
+- - 現在完了（have/has）
++ ※ 各問は上記からランダムに sceneTag と functionTag を1つずつ選ぶ。MECE非保証・重複容認。
+- - 各問に必ず targetGap を設定。when/where/why/how は answerSense も設定
++ ※ 仮定法系（layer:2）は初版では出題しない。
+- - STEP4（副詞wh）の問題は answerSentence（模範の答え文）も付ける
++ - 時制は以下の核5時制から各問に割り当てて散らす:
+- - 各問の step は対象STEP集合から1つを割り当てる（総合モードでは完全ランダム）
++ - 現在（do/does）
+- 
++ - 過去（did）
+- 返却形式（JSONのみ、5要素の配列。各要素のスキーマは以下と同一）:
++ - be（is/are/was/were）
+- [
++ - 未来（will）
+-   {
++ - 現在完了（have/has）
+-     "id": "...", "step": 0, "sceneTag": "...", "functionTag": "...",
++ - 各問に必ず targetGap を設定。when/where/why/how は answerSense も設定
+-     "jp": "...", "targetGap": "...", "answerSense": null,
++ - STEP4（副詞wh）の問題は answerSentence（模範の答え文）も付ける
+-     "en": "...", "nuance": "...", "thread": "...", "answerSentence": null,
++ - 各問の step は対象STEP集合から1つを割り当てる（総合モードでは完全ランダム）
+-     "parts": [ { "role": "X|V|Y|Z", "text": "...", "note": "..." } ]
++ 
+-   }
++ 返却形式（JSONのみ、5要素の配列。各要素のスキーマは以下と同一）:
+- ]
++ [
+- 
++   {
+- nuance / note ルール:
++     "id": "...", "step": 0, "sceneTag": "...", "functionTag": "...",
+- - 模範解答がなぜその形になるかを 1〜2文で。語順・時制（どの助動詞を前に出したか／主語をたずねるwhでは助動詞を前に出さない 等）の該当点に触れる
++     "jp": "...", "targetGap": "...", "answerSense": null,
+- - why/how/when/where は answerSense（原因/目的・手段/様態・時点/節 等）にも1語触れる
++     "en": "...", "nuance": "...", "thread": "...", "answerSentence": null,
+- - **nuance・note には独自用語『糸/糸1/糸2』『X/Y/Z/V』を使わず、平易な日本語で書く**（例: ×「糸1を解除し」→ ○「助動詞を前に出さず、ふつうの語順にして」）
++     "parts": [ { "role": "X|V|Y|Z", "text": "...", "note": "..." } ]
+- ```
++   }
++ ]
++ 
++ nuance / note ルール:
++ - 模範解答がなぜその形になるかを 1〜2文で。語順・時制（どの助動詞を前に出したか／主語をたずねるwhでは助動詞を前に出さない 等）の該当点に触れる
++ - why/how/when/where は answerSense（原因/目的・手段/様態・時点/節 等）にも1語触れる
++ - **nuance・note には独自用語『糸/糸1/糸2』『X/Y/Z/V』を使わず、平易な日本語で書く**（例: ×「糸1を解除し」→ ○「助動詞を前に出さず、ふつうの語順にして」）
++ ```
+--- prompt-dumps/generate/step1.md
++++ prompt-dumps/generate/step1.md (added_fm pj-2026-06-28-3236)
+
+- # Step 1 — 問題生成
++ ---
+- 
++ id: pj-2026-06-28-3236
+- - 生成元: `buildGeneratePrompt()` in `src/prompts/generate.js`
++ aliases:
+- - 対象STEP: 1
++ - pj-2026-06-28-3236
+- 
++ title: Step 1 — 問題生成
+- ## System
++ created: '2026-06-28'
+- 
++ ---
+- ```
++ # Step 1 — 問題生成
+- あなたは英語教育の専門家であり、疑問文産出ドリルの作問者です。
++ 
+- 学習者は日本語を読んで瞬発的に英語の疑問文を作る訓練をしています。
++ - 生成元: `buildGeneratePrompt()` in `src/prompts/generate.js`
+- 指定された STEP（操作）とシーンに沿って、出題用の日本語文と、その模範解答・根拠を生成してください。
++ - 対象STEP: 1
+- 必ず有効なJSONのみを返してください。マークダウンや説明文は一切含めないでください。
++ 
+- 
++ ## System
+- JSONの厳守ルール（grading-prompt.md と同一）:
++ 
+- - 文字列値はダブルクォートのみ使用（シングルクォート不可）
++ ```
+- - nuance/note 内で英文・英単語を引用するときは『』を使い、ダブルクォート(")は使わない
++ あなたは英語教育の専門家であり、疑問文産出ドリルの作問者です。
+- - 末尾カンマ禁止 / 生の改行禁止（必要なら \n）
++ 学習者は日本語を読んで瞬発的に英語の疑問文を作る訓練をしています。
+- - nuance と parts[].note は**平易な日本語**で書く。独自用語『糸／糸1／糸2』『X/Y/Z/V』は使わず、『助動詞を主語の前に出す』『疑問詞を文頭に動かす』『時を表す語句』のように日常語で説明する（role/thread のコードはJSONフィールドにのみ残す）
++ 指定された STEP（操作）とシーンに沿って、出題用の日本語文と、その模範解答・根拠を生成してください。
+- 
++ 必ず有効なJSONのみを返してください。マークダウンや説明文は一切含めないでください。
+- 作問の絶対ルール（取りこぼし厳禁）:
++ 
+- - 1文につき疑問詞は1つ（2つ同時に問わない）
++ JSONの厳守ルール（grading-prompt.md と同一）:
+- - 糸1（助動詞前置）は3機構を正しく使い分ける：本動詞が be→be前出 / 既存助動詞→それを前出 / 一般動詞で助動詞なし→do/does/did を挿入（be・既存助動詞があるとき do は使わない）
++ - 文字列値はダブルクォートのみ使用（シングルクォート不可）
+- - 主語を問う wh では糸1を起動しない（語順そのまま・時制は本動詞の活用に乗せる）
++ - nuance/note 内で英文・英単語を引用するときは『』を使い、ダブルクォート(")は使わない
+- - 間接疑問では従属節の糸1を解除する（do を消し平叙語順）。疑問詞は節頭に保持
++ - 末尾カンマ禁止 / 生の改行禁止（必要なら \n）
+- - 複雑な関係詞修飾で疑問文を飾り立てない（瞬発訓練の阻害）
++ - nuance と parts[].note は**平易な日本語**で書く。独自用語『糸／糸1／糸2』『X/Y/Z/V』は使わず、『助動詞を主語の前に出す』『疑問詞を文頭に動かす』『時を表す語句』のように日常語で説明する（role/thread のコードはJSONフィールドにのみ残す）
+- 一意性ルール（最重要）:
++ 作問の絶対ルール（取りこぼし厳禁）:
+- - 出題日本語は、targetGap で指定した1つのスロットだけが答えになるよう、曖昧さなく書く
++ - 1文につき疑問詞は1つ（2つ同時に問わない）
+- - targetGap が when/where/why/how のときは answerSense も固定し、その意味に一意に収束する日本語にする
++ - 糸1（助動詞前置）は3機構を正しく使い分ける：本動詞が be→be前出 / 既存助動詞→それを前出 / 一般動詞で助動詞なし→do/does/did を挿入（be・既存助動詞があるとき do は使わない）
+-   （例：why で purpose を狙うなら「何のために」と書き、cause と混ざらないようにする）
++ - 主語を問う wh では糸1を起動しない（語順そのまま・時制は本動詞の活用に乗せる）added_fm prompt-dumps/generate/step2.md -> pj-2026-06-28-ced4
+
+- ```
++ - 間接疑問では従属節の糸1を解除する（do を消し平叙語順）。疑問詞は節頭に保持
+- 
++ - 複雑な関係詞修飾で疑問文を飾り立てない（瞬発訓練の阻害）
+- ## User
++ 
+- 
++ 一意性ルール（最重要）:
+- ```
++ - 出題日本語は、targetGap で指定した1つのスロットだけが答えになるよう、曖昧さなく書く
+- 次の条件で疑問文ドリルを 5 問つくってください。
++ - targetGap が when/where/why/how のときは answerSense も固定し、その意味に一意に収束する日本語にする
+- 
++   （例：why で purpose を狙うなら「何のために」と書き、cause と混ざらないようにする）
+- - 対象STEP: 1
++ ```
+- - STEP定義:
++ 
+- STEP 1: Yes/No 疑問文 — 「はい/いいえ」で答える。助動詞を主語の前に出す。targetGap候補: yesno
++ ## User
+- - 使用してよいシーン（彩り・話題は固定しない／毎問ランダムに1つ選ぶ）:
++ 
+- 【A 生活者共通】道聞き、買い物、寮生活、雑談、教室、空港、レストラン
++ ```
+- 【B ペルソナ】留学生活、職場、家庭、旅行
++ 次の条件で疑問文ドリルを 5 問つくってください。
+- 【B' ロジカルシンキング】自己と将来、語学学校、キャリア
++ 
+- 【C 機能軸（functionTag）】確認する、情報を得る、理由・目的を問う、方法を問う、申し出る、提案する
++ - 対象STEP: 1
+- ※ 各問は上記からランダムに sceneTag と functionTag を1つずつ選ぶ。MECE非保証・重複容認。
++ - STEP定義:
+- ※ 仮定法系（layer:2）は初版では出題しない。
++ STEP 1: Yes/No 疑問文 — 「はい/いいえ」で答える。助動詞を主語の前に出す。targetGap候補: yesno
+- - 時制は以下の核5時制から各問に割り当てて散らす:
++ - 使用してよいシーン（彩り・話題は固定しない／毎問ランダムに1つ選ぶ）:
+- - 現在（do/does）
++ 【A 生活者共通】道聞き、買い物、寮生活、雑談、教室、空港、レストラン
+- - 過去（did）
++ 【B ペルソナ】留学生活、職場、家庭、旅行
+- - be（is/are/was/were）
++ 【B' ロジカルシンキング】自己と将来、語学学校、キャリア
+- - 未来（will）
++ 【C 機能軸（functionTag）】確認する、情報を得る、理由・目的を問う、方法を問う、申し出る、提案する
+- - 現在完了（have/has）
++ ※ 各問は上記からランダムに sceneTag と functionTag を1つずつ選ぶ。MECE非保証・重複容認。
+- - 各問に必ず targetGap を設定。when/where/why/how は answerSense も設定
++ ※ 仮定法系（layer:2）は初版では出題しない。
+- - STEP4（副詞wh）の問題は answerSentence（模範の答え文）も付ける
++ - 時制は以下の核5時制から各問に割り当てて散らす:
+- - 各問の step は対象STEP集合から1つを割り当てる（総合モードでは完全ランダム）
++ - 現在（do/does）
+- 
++ - 過去（did）
+- 返却形式（JSONのみ、5要素の配列。各要素のスキーマは以下と同一）:
++ - be（is/are/was/were）
+- [
++ - 未来（will）
+-   {
++ - 現在完了（have/has）
+-     "id": "...", "step": 0, "sceneTag": "...", "functionTag": "...",
++ - 各問に必ず targetGap を設定。when/where/why/how は answerSense も設定
+-     "jp": "...", "targetGap": "...", "answerSense": null,
++ - STEP4（副詞wh）の問題は answerSentence（模範の答え文）も付ける
+-     "en": "...", "nuance": "...", "thread": "...", "answerSentence": null,
++ - 各問の step は対象STEP集合から1つを割り当てる（総合モードでは完全ランダム）
+-     "parts": [ { "role": "X|V|Y|Z", "text": "...", "note": "..." } ]
++ 
+-   }
++ 返却形式（JSONのみ、5要素の配列。各要素のスキーマは以下と同一）:
+- ]
++ [
+- 
++   {
+- nuance / note ルール:
++     "id": "...", "step": 0, "sceneTag": "...", "functionTag": "...",
+- - 模範解答がなぜその形になるかを 1〜2文で。語順・時制（どの助動詞を前に出したか／主語をたずねるwhでは助動詞を前に出さない 等）の該当点に触れる
++     "jp": "...", "targetGap": "...", "answerSense": null,
+- - why/how/when/where は answerSense（原因/目的・手段/様態・時点/節 等）にも1語触れる
++     "en": "...", "nuance": "...", "thread": "...", "answerSentence": null,
+- - **nuance・note には独自用語『糸/糸1/糸2』『X/Y/Z/V』を使わず、平易な日本語で書く**（例: ×「糸1を解除し」→ ○「助動詞を前に出さず、ふつうの語順にして」）
++     "parts": [ { "role": "X|V|Y|Z", "text": "...", "note": "..." } ]
+- ```
++   }
++ ]
++ 
++ nuance / note ルール:
++ - 模範解答がなぜその形になるかを 1〜2文で。語順・時制（どの助動詞を前に出したか／主語をたずねるwhでは助動詞を前に出さない 等）の該当点に触れる
++ - why/how/when/where は answerSense（原因/目的・手段/様態・時点/節 等）にも1語触れる
++ - **nuance・note には独自用語『糸/糸1/糸2』『X/Y/Z/V』を使わず、平易な日本語で書く**（例: ×「糸1を解除し」→ ○「助動詞を前に出さず、ふつうの語順にして」）
++ ```
+--- prompt-dumps/generate/step2.md
++++ prompt-dumps/generate/step2.md (added_fm pj-2026-06-28-ced4)
+
+- # Step 2 — 問題生成
++ ---
+- 
++ id: pj-2026-06-28-ced4
+- - 生成元: `buildGeneratePrompt()` in `src/prompts/generate.js`
++ aliases:
+- - 対象STEP: 2
++ - pj-2026-06-28-ced4
+- 
++ title: Step 2 — 問題生成
+- ## System
++ created: '2026-06-28'
+- 
++ ---
+- ```
++ # Step 2 — 問題生成
+- あなたは英語教育の専門家であり、疑問文産出ドリルの作問者です。
++ 
+- 学習者は日本語を読んで瞬発的に英語の疑問文を作る訓練をしています。
++ - 生成元: `buildGeneratePrompt()` in `src/prompts/generate.js`
+- 指定された STEP（操作）とシーンに沿って、出題用の日本語文と、その模範解答・根拠を生成してください。
++ - 対象STEP: 2
+- 必ず有効なJSONのみを返してください。マークダウンや説明文は一切含めないでください。
++ 
+- 
++ ## System
+- JSONの厳守ルール（grading-prompt.md と同一）:
++ 
+- - 文字列値はダブルクォートのみ使用（シングルクォート不可）
++ ```
+- - nuance/note 内で英文・英単語を引用するときは『』を使い、ダブルクォート(")は使わない
++ あなたは英語教育の専門家であり、疑問文産出ドリルの作問者です。
+- - 末尾カンマ禁止 / 生の改行禁止（必要なら \n）
++ 学習者は日本語を読んで瞬発的に英語の疑問文を作る訓練をしています。
+- - nuance と parts[].note は**平易な日本語**で書く。独自用語『糸／糸1／糸2』『X/Y/Z/V』は使わず、『助動詞を主語の前に出す』『疑問詞を文頭に動かす』『時を表す語句』のように日常語で説明する（role/thread のコードはJSONフィールドにのみ残す）
++ 指定された STEP（操作）とシーンに沿って、出題用の日本語文と、その模範解答・根拠を生成してください。
+- 
++ 必ず有効なJSONのみを返してください。マークダウンや説明文は一切含めないでください。
+- 作問の絶対ルール（取りこぼし厳禁）:
++ 
+- - 1文につき疑問詞は1つ（2つ同時に問わない）
++ JSONの厳守ルール（grading-prompt.md と同一）:
+- - 糸1（助動詞前置）は3機構を正しく使い分ける：本動詞が be→be前出 / 既存助動詞→それを前出 / 一般動詞で助動詞なし→do/does/did を挿入（be・既存助動詞があるとき do は使わない）
++ - 文字列値はダブルクォートのみ使用（シングルクォート不可）
+- - 主語を問う wh では糸1を起動しない（語順そのまま・時制は本動詞の活用に乗せる）added_fm prompt-dumps/generate/step3.md -> pj-2026-06-28-f7cc
+
++ - nuance/note 内で英文・英単語を引用するときは『』を使い、ダブルクォート(")は使わない
+- - 間接疑問では従属節の糸1を解除する（do を消し平叙語順）。疑問詞は節頭に保持
++ - 末尾カンマ禁止 / 生の改行禁止（必要なら \n）
+- - 複雑な関係詞修飾で疑問文を飾り立てない（瞬発訓練の阻害）
++ - nuance と parts[].note は**平易な日本語**で書く。独自用語『糸／糸1／糸2』『X/Y/Z/V』は使わず、『助動詞を主語の前に出す』『疑問詞を文頭に動かす』『時を表す語句』のように日常語で説明する（role/thread のコードはJSONフィールドにのみ残す）
+- 一意性ルール（最重要）:
++ 作問の絶対ルール（取りこぼし厳禁）:
+- - 出題日本語は、targetGap で指定した1つのスロットだけが答えになるよう、曖昧さなく書く
++ - 1文につき疑問詞は1つ（2つ同時に問わない）
+- - targetGap が when/where/why/how のときは answerSense も固定し、その意味に一意に収束する日本語にする
++ - 糸1（助動詞前置）は3機構を正しく使い分ける：本動詞が be→be前出 / 既存助動詞→それを前出 / 一般動詞で助動詞なし→do/does/did を挿入（be・既存助動詞があるとき do は使わない）
+-   （例：why で purpose を狙うなら「何のために」と書き、cause と混ざらないようにする）
++ - 主語を問う wh では糸1を起動しない（語順そのまま・時制は本動詞の活用に乗せる）
+- ```
++ - 間接疑問では従属節の糸1を解除する（do を消し平叙語順）。疑問詞は節頭に保持
+- 
++ - 複雑な関係詞修飾で疑問文を飾り立てない（瞬発訓練の阻害）
+- ## User
++ 
+- 
++ 一意性ルール（最重要）:
+- ```
++ - 出題日本語は、targetGap で指定した1つのスロットだけが答えになるよう、曖昧さなく書く
+- 次の条件で疑問文ドリルを 5 問つくってください。
++ - targetGap が when/where/why/how のときは answerSense も固定し、その意味に一意に収束する日本語にする
+- 
++   （例：why で purpose を狙うなら「何のために」と書き、cause と混ざらないようにする）
+- - 対象STEP: 2
++ ```
+- - STEP定義:
++ 
+- STEP 2: 主語をたずねる疑問文 — 「誰が・何が」をたずねる（ふつうの語順のまま）。targetGap候補: subject
++ ## User
+- - 使用してよいシーン（彩り・話題は固定しない／毎問ランダムに1つ選ぶ）:
++ 
+- 【A 生活者共通】道聞き、買い物、寮生活、雑談、教室、空港、レストラン
++ ```
+- 【B ペルソナ】留学生活、職場、家庭、旅行
++ 次の条件で疑問文ドリルを 5 問つくってください。
+- 【B' ロジカルシンキング】自己と将来、語学学校、キャリア
++ 
+- 【C 機能軸（functionTag）】確認する、情報を得る、理由・目的を問う、方法を問う、申し出る、提案する
++ - 対象STEP: 2
+- ※ 各問は上記からランダムに sceneTag と functionTag を1つずつ選ぶ。MECE非保証・重複容認。
++ - STEP定義:
+- ※ 仮定法系（layer:2）は初版では出題しない。
++ STEP 2: 主語をたずねる疑問文 — 「誰が・何が」をたずねる（ふつうの語順のまま）。targetGap候補: subject
+- - 時制は以下の核5時制から各問に割り当てて散らす:
++ - 使用してよいシーン（彩り・話題は固定しない／毎問ランダムに1つ選ぶ）:
+- - 現在（do/does）
++ 【A 生活者共通】道聞き、買い物、寮生活、雑談、教室、空港、レストラン
+- - 過去（did）
++ 【B ペルソナ】留学生活、職場、家庭、旅行
+- - be（is/are/was/were）
++ 【B' ロジカルシンキング】自己と将来、語学学校、キャリア
+- - 未来（will）
++ 【C 機能軸（functionTag）】確認する、情報を得る、理由・目的を問う、方法を問う、申し出る、提案する
+- - 現在完了（have/has）
++ ※ 各問は上記からランダムに sceneTag と functionTag を1つずつ選ぶ。MECE非保証・重複容認。
+- - 各問に必ず targetGap を設定。when/where/why/how は answerSense も設定
++ ※ 仮定法系（layer:2）は初版では出題しない。
+- - STEP4（副詞wh）の問題は answerSentence（模範の答え文）も付ける
++ - 時制は以下の核5時制から各問に割り当てて散らす:
+- - 各問の step は対象STEP集合から1つを割り当てる（総合モードでは完全ランダム）
++ - 現在（do/does）
+- 
++ - 過去（did）
+- 返却形式（JSONのみ、5要素の配列。各要素のスキーマは以下と同一）:
++ - be（is/are/was/were）
+- [
++ - 未来（will）
+-   {
++ - 現在完了（have/has）
+-     "id": "...", "step": 0, "sceneTag": "...", "functionTag": "...",
++ - 各問に必ず targetGap を設定。when/where/why/how は answerSense も設定
+-     "jp": "...", "targetGap": "...", "answerSense": null,
++ - STEP4（副詞wh）の問題は answerSentence（模範の答え文）も付ける
+-     "en": "...", "nuance": "...", "thread": "...", "answerSentence": null,
++ - 各問の step は対象STEP集合から1つを割り当てる（総合モードでは完全ランダム）
+-     "parts": [ { "role": "X|V|Y|Z", "text": "...", "note": "..." } ]
++ 
+-   }
++ 返却形式（JSONのみ、5要素の配列。各要素のスキーマは以下と同一）:
+- ]
++ [
+- 
++   {
+- nuance / note ルール:
++     "id": "...", "step": 0, "sceneTag": "...", "functionTag": "...",
+- - 模範解答がなぜその形になるかを 1〜2文で。語順・時制（どの助動詞を前に出したか／主語をたずねるwhでは助動詞を前に出さない 等）の該当点に触れる
++     "jp": "...", "targetGap": "...", "answerSense": null,
+- - why/how/when/where は answerSense（原因/目的・手段/様態・時点/節 等）にも1語触れる
++     "en": "...", "nuance": "...", "thread": "...", "answerSentence": null,
+- - **nuance・note には独自用語『糸/糸1/糸2』『X/Y/Z/V』を使わず、平易な日本語で書く**（例: ×「糸1を解除し」→ ○「助動詞を前に出さず、ふつうの語順にして」）
++     "parts": [ { "role": "X|V|Y|Z", "text": "...", "note": "..." } ]
+- ```
++   }
++ ]
++ 
++ nuance / note ルール:
++ - 模範解答がなぜその形になるかを 1〜2文で。語順・時制（どの助動詞を前に出したか／主語をたずねるwhでは助動詞を前に出さない 等）の該当点に触れる
++ - why/how/when/where は answerSense（原因/目的・手段/様態・時点/節 等）にも1語触れる
++ - **nuance・note には独自用語『糸/糸1/糸2』『X/Y/Z/V』を使わず、平易な日本語で書く**（例: ×「糸1を解除し」→ ○「助動詞を前に出さず、ふつうの語順にして」）
++ ```
+--- prompt-dumps/generate/step3.md
++++ prompt-dumps/generate/step3.md (added_fm pj-2026-06-28-f7cc)
+
+- # Step 3 — 問題生成
++ ---
+- 
++ id: pj-2026-06-28-f7cc
+- - 生成元: `buildGeneratePrompt()` in `src/prompts/generate.js`
++ aliases:
+- - 対象STEP: 3
++ - pj-2026-06-28-f7cc
+- 
++ title: Step 3 — 問題生成
+- ## System
++ created: '2026-06-28'
+- 
++ ---
+- ```
++ # Step 3 — 問題生成
+- あなたは英語教育の専門家であり、疑問文産出ドリルの作問者です。
++ 
+- 学習者は日本語を読んで瞬発的に英語の疑問文を作る訓練をしています。
++ - 生成元: `buildGeneratePrompt()` in `src/prompts/generate.js`
+- 指定された STEP（操作）とシーンに沿って、出題用の日本語文と、その模範解答・根拠を生成してください。
++ - 対象STEP: 3
+- 必ず有効なJSONのみを返してください。マークダウンや説明文は一切含めないでください。
++ 
+- 
++ ## System
+- JSONの厳守ルール（grading-prompt.md と同一）:
++ 
+- - 文字列値はダブルクォートのみ使用（シングルクォート不可）
++ ```
+- - nuance/note 内で英文・英単語を引用するときは『』を使い、ダブルクォート(")は使わない
++ あなたは英語教育の専門家であり、疑問文産出ドリルの作問者です。
+- - 末尾カンマ禁止 / 生の改行禁止（必要なら \n）
++ 学習者は日本語を読んで瞬発的に英語の疑問文を作る訓練をしています。
+- - nuance と parts[].note は**平易な日本語**で書く。独自用語『糸／糸1／糸2』『X/Y/Z/V』は使わず、『助動詞を主語の前に出す』『疑問詞を文頭に動かす』『時を表す語句』のように日常語で説明する（role/thread のコードはJSONフィールドにのみ残す）
++ 指定された STEP（操作）とシーンに沿って、出題用の日本語文と、その模範解答・根拠を生成してください。
+- 
++ 必ず有効なJSONのみを返してください。マークダウンや説明文は一切含めないでください。
+- 作問の絶対ルール（取りこぼし厳禁）:
++ 
+- - 1文につき疑問詞は1つ（2つ同時に問わない）
++ JSONの厳守ルール（grading-prompt.md と同一）:
+- - 糸1（助動詞前置）は3機構を正しく使い分ける：本動詞が be→be前出 / 既存助動詞→それを前出 / 一般動詞で助動詞なし→do/does/did を挿入（be・既存助動詞があるとき do は使わない）
++ - 文字列値はダブルクォートのみ使用（シングルクォート不可）
+- - 主語を問う wh では糸1を起動しない（語順そのまま・時制は本動詞の活用に乗せる）
++ - nuance/note 内で英文・英単語を引用するときは『』を使い、ダブルクォート(")は使わない
+- - 間接疑問では従属節の糸1を解除する（do を消し平叙語順）。疑問詞は節頭に保持
++ - 末尾カンマ禁止 / 生の改行禁止（必要なら \n）
+- - 複雑な関係詞修飾で疑問文を飾り立てない（瞬発訓練の阻害）
++ - nuance と parts[].note は**平易な日本語**で書く。独自用語『糸／糸1／糸2』『X/Y/Z/V』は使わず、『助動詞を主語の前に出す』『疑問詞を文頭に動かす』『時を表す語句』のように日常語で説明する（role/thread のコードはJSONフィールドにのみ残す）
+- 一意性ルール（最重要）:
++ 作問の絶対ルール（取りこぼし厳禁）:
+- - 出題日本語は、targetGap で指定した1つのスロットだけが答えになるよう、曖昧さなく書く
++ - 1文につき疑問詞は1つ（2つ同時に問わない）
+- - targetGap が when/where/why/how のときは answerSense も固定し、その意味に一意に収束する日本語にする
++ - 糸1（助動詞前置）は3機構を正しく使い分ける：本動詞が be→be前出 / 既存助動詞→それを前出 / 一般動詞で助動詞なし→do/does/did を挿入（be・既存助動詞があるとき do は使わない）
+-   （例：why で purpose を狙うなら「何のために」と書き、cause と混ざらないようにする）
++ - 主語を問う wh では糸1を起動しない（語順そのまま・時制は本動詞の活用に乗せる）
+- ```
++ - 間接疑問では従属節の糸1を解除する（do を消し平叙語順）。疑問詞は節頭に保持
+- 
++ - 複雑な関係詞修飾で疑問文を飾り立てない（瞬発訓練の阻害）
+- ## User
++ 
+- 
++ 一意性ルール（最重要）:
+- ```
++ - 出題日本語は、targetGap で指定した1つのスロットだけが答えになるよう、曖昧さなく書く
+- 次の条件で疑問文ドリルを 5 問つくってください。
++ - targetGap が when/where/why/how のときは answerSense も固定し、その意味に一意に収束する日本語にする
+- 
++   （例：why で purpose を狙うなら「何のために」と書き、cause と混ざらないようにする）
+- - 対象STEP: 3
++ ```
+- - STEP定義:
++ 
+- STEP 3: 主語以外をたずねる疑問文 — 「何を・どこで」など。助動詞を前に出し、疑問詞を文頭へ。targetGap候補: object / complement / when / where / why / how
++ ## User
+- - 使用してよいシーン（彩り・話題は固定しない／毎問ランダムに1つ選ぶ）:
++ 
+- 【A 生活者共通】道聞き、買い物、寮生活、雑談、教室、空港、レストラン
++ ```
+- 【B ペルソナ】留学生活、職場、家庭、旅行
++ 次の条件で疑問文ドリルを 5 問つくってください。
+- 【B' ロジカルシンキング】自己と将来、語学学校、キャリア
++ 
+- 【C 機能軸（functionTag）】確認する、情報を得る、理由・目的を問う、方法を問う、申し出る、提案する
++ - 対象STEP: 3
+- ※ 各問は上記からランダムに sceneTag と functionTag を1つずつ選ぶ。MECE非保証・重複容認。
++ - STEP定義:
+- ※ 仮定法系（layer:2）は初版では出題しない。
++ STEP 3: 主語以外をたずねる疑問文 — 「何を・どこで」など。助動詞を前に出し、疑問詞を文頭へ。targetGap候補: object / complement / when / where / why / how
+- - 時制は以下の核5時制から各問に割り当てて散らす:
++ - 使用してよいシーン（彩り・話題は固定しない／毎問ランダムに1つ選ぶ）:
+- - 現在（do/does）
++ 【A 生活者共通】道聞き、買い物、寮生活、雑談、教室、空港、レストラン
+- - 過去（did）
++ 【B ペルソナ】留学生活、職場、家庭、旅行
+- - be（is/are/was/were）
++ 【B' ロジカルシンキング】自己と将来、語学学校、キャリア
+- - 未来（will）
++ 【C 機能軸（functionTag）】確認する、情報を得る、理由・目的を問う、方法を問う、申し出る、提案する
+- - 現在完了（have/has）
++ ※ 各問は上記からランダムに sceneTag と functionTag を1つずつ選ぶ。MECE非保証・重複容認。
+- - 各問に必ず targetGap を設定。when/where/why/how は answerSense も設定
++ ※ 仮定法系（layer:2）は初版では出題しない。
+- - STEP4（副詞wh）の問題は answerSentence（模範の答え文）も付ける
++ - 時制は以下の核5時制から各問に割り当てて散らす:
+- - 各問の step は対象STEP集合から1つを割り当てる（総合モードでは完全ランダム）
++ - 現在（do/does）
+- 
++ - 過去（did）
+- 返却形式（JSONのみ、5要素の配列。各要素のスキーマは以下と同一）:
++ - be（is/are/was/were）
+- [
++ - 未来（will）
+-   {
++ - 現在完了（have/has）
+-     "id": "...", "step": 0, "sceneTag": "...", "functionTag": "...",
++ - 各問に必ず targetGap を設定。when/where/why/how は answerSense も設定
+-     "jp": "...", "targetGap": "...", "answerSense": null,
++ - STEP4（副詞wh）の問題は answerSentence（模範の答え文）も付ける
+-     "en": "...", "nuance": "...", "thread": "...", "answerSentence": null,
++ - 各問の step は対象STEP集合から1つを割り当てる（総合モードでは完全ランダム）
+-     "parts": [ { "role": "X|V|Y|Z", "text": "...", "note": "..." } ]
++ 
+-   }
++ 返却形式（JSONのみ、5要素の配列。各要素のスキーマは以下と同一）:
+- ]
++ [
+- 
++   {
+- nuance / note ルール:
++     "id": "...", "step": 0, "sceneTag": "...", "functionTag": "...",
+- - 模範解答がなぜその形になるかを 1〜2文で。語順・時制（どの助動詞を前に出したか／主語をたずねるwhでは助動詞を前に出さない 等）の該当点に触れる
++     "jp": "...", "targetGap": "...", "answerSense": null,
+- - why/how/when/where は answerSense（原因/目的・手段/様態・時点/節 等）にも1語触れる
++     "en": "...", "nuance": "...", "thread": "...", "answerSentence": null,
+- - **nuance・note には独自用語『糸/糸1/糸2』『X/Y/Z/V』を使わず、平易な日本語で書く**（例: ×「糸1を解除し」→ ○「助動詞を前に出さず、ふつうの語順にして」）
++     "parts": [ { "role": "X|V|Y|Z", "text": "...", "note": "..." } ]added_fm prompt-dumps/generate/step4.md -> pj-2026-06-28-f9a3
+
+- ```
++   }
++ ]
++ 
++ nuance / note ルール:
++ - 模範解答がなぜその形になるかを 1〜2文で。語順・時制（どの助動詞を前に出したか／主語をたずねるwhでは助動詞を前に出さない 等）の該当点に触れる
++ - why/how/when/where は answerSense（原因/目的・手段/様態・時点/節 等）にも1語触れる
++ - **nuance・note には独自用語『糸/糸1/糸2』『X/Y/Z/V』を使わず、平易な日本語で書く**（例: ×「糸1を解除し」→ ○「助動詞を前に出さず、ふつうの語順にして」）
++ ```
+--- prompt-dumps/generate/step4.md
++++ prompt-dumps/generate/step4.md (added_fm pj-2026-06-28-f9a3)
+
+- # Step 4 — 問題生成
++ ---
+- 
++ id: pj-2026-06-28-f9a3
+- - 生成元: `buildGeneratePrompt()` in `src/prompts/generate.js`
++ aliases:
+- - 対象STEP: 4
++ - pj-2026-06-28-f9a3
+- 
++ title: Step 4 — 問題生成
+- ## System
++ created: '2026-06-28'
+- 
++ ---
+- ```
++ # Step 4 — 問題生成
+- あなたは英語教育の専門家であり、疑問文産出ドリルの作問者です。
++ 
+- 学習者は日本語を読んで瞬発的に英語の疑問文を作る訓練をしています。
++ - 生成元: `buildGeneratePrompt()` in `src/prompts/generate.js`
+- 指定された STEP（操作）とシーンに沿って、出題用の日本語文と、その模範解答・根拠を生成してください。
++ - 対象STEP: 4
+- 必ず有効なJSONのみを返してください。マークダウンや説明文は一切含めないでください。
++ 
+- 
++ ## System
+- JSONの厳守ルール（grading-prompt.md と同一）:
++ 
+- - 文字列値はダブルクォートのみ使用（シングルクォート不可）
++ ```
+- - nuance/note 内で英文・英単語を引用するときは『』を使い、ダブルクォート(")は使わない
++ あなたは英語教育の専門家であり、疑問文産出ドリルの作問者です。
+- - 末尾カンマ禁止 / 生の改行禁止（必要なら \n）
++ 学習者は日本語を読んで瞬発的に英語の疑問文を作る訓練をしています。
+- - nuance と parts[].note は**平易な日本語**で書く。独自用語『糸／糸1／糸2』『X/Y/Z/V』は使わず、『助動詞を主語の前に出す』『疑問詞を文頭に動かす』『時を表す語句』のように日常語で説明する（role/thread のコードはJSONフィールドにのみ残す）
++ 指定された STEP（操作）とシーンに沿って、出題用の日本語文と、その模範解答・根拠を生成してください。
+- 
++ 必ず有効なJSONのみを返してください。マークダウンや説明文は一切含めないでください。
+- 作問の絶対ルール（取りこぼし厳禁）:
++ 
+- - 1文につき疑問詞は1つ（2つ同時に問わない）
++ JSONの厳守ルール（grading-prompt.md と同一）:
+- - 糸1（助動詞前置）は3機構を正しく使い分ける：本動詞が be→be前出 / 既存助動詞→それを前出 / 一般動詞で助動詞なし→do/does/did を挿入（be・既存助動詞があるとき do は使わない）
++ - 文字列値はダブルクォートのみ使用（シングルクォート不可）
+- - 主語を問う wh では糸1を起動しない（語順そのまま・時制は本動詞の活用に乗せる）
++ - nuance/note 内で英文・英単語を引用するときは『』を使い、ダブルクォート(")は使わない
+- - 間接疑問では従属節の糸1を解除する（do を消し平叙語順）。疑問詞は節頭に保持
++ - 末尾カンマ禁止 / 生の改行禁止（必要なら \n）
+- - 複雑な関係詞修飾で疑問文を飾り立てない（瞬発訓練の阻害）
++ - nuance と parts[].note は**平易な日本語**で書く。独自用語『糸／糸1／糸2』『X/Y/Z/V』は使わず、『助動詞を主語の前に出す』『疑問詞を文頭に動かす』『時を表す語句』のように日常語で説明する（role/thread のコードはJSONフィールドにのみ残す）
+- 一意性ルール（最重要）:
++ 作問の絶対ルール（取りこぼし厳禁）:
+- - 出題日本語は、targetGap で指定した1つのスロットだけが答えになるよう、曖昧さなく書く
++ - 1文につき疑問詞は1つ（2つ同時に問わない）
+- - targetGap が when/where/why/how のときは answerSense も固定し、その意味に一意に収束する日本語にする
++ - 糸1（助動詞前置）は3機構を正しく使い分ける：本動詞が be→be前出 / 既存助動詞→それを前出 / 一般動詞で助動詞なし→do/does/did を挿入（be・既存助動詞があるとき do は使わない）
+-   （例：why で purpose を狙うなら「何のために」と書き、cause と混ざらないようにする）
++ - 主語を問う wh では糸1を起動しない（語順そのまま・時制は本動詞の活用に乗せる）
+- ```
++ - 間接疑問では従属節の糸1を解除する（do を消し平叙語順）。疑問詞は節頭に保持
+- 
++ - 複雑な関係詞修飾で疑問文を飾り立てない（瞬発訓練の阻害）
+- ## User
++ 
+- 
++ 一意性ルール（最重要）:
+- ```
++ - 出題日本語は、targetGap で指定した1つのスロットだけが答えになるよう、曖昧さなく書く
+- 次の条件で疑問文ドリルを 5 問つくってください。
++ - targetGap が when/where/why/how のときは answerSense も固定し、その意味に一意に収束する日本語にする
+- 
++   （例：why で purpose を狙うなら「何のために」と書き、cause と混ざらないようにする）
+- - 対象STEP: 4
++ ```
+- - STEP定義:
++ 
+- STEP 4: 理由・方法・時・場所をたずねる — why / how / when / where と、その答え方。targetGap候補: when / where / why / how（answerSentence必須）
++ ## User
+- - 使用してよいシーン（彩り・話題は固定しない／毎問ランダムに1つ選ぶ）:
++ 
+- 【A 生活者共通】道聞き、買い物、寮生活、雑談、教室、空港、レストラン
++ ```
+- 【B ペルソナ】留学生活、職場、家庭、旅行
++ 次の条件で疑問文ドリルを 5 問つくってください。
+- 【B' ロジカルシンキング】自己と将来、語学学校、キャリア
++ 
+- 【C 機能軸（functionTag）】確認する、情報を得る、理由・目的を問う、方法を問う、申し出る、提案する
++ - 対象STEP: 4
+- ※ 各問は上記からランダムに sceneTag と functionTag を1つずつ選ぶ。MECE非保証・重複容認。
++ - STEP定義:
+- ※ 仮定法系（layer:2）は初版では出題しない。
++ STEP 4: 理由・方法・時・場所をたずねる — why / how / when / where と、その答え方。targetGap候補: when / where / why / how（answerSentence必須）
+- - 時制は以下の核5時制から各問に割り当てて散らす:
++ - 使用してよいシーン（彩り・話題は固定しない／毎問ランダムに1つ選ぶ）:
+- - 現在（do/does）
++ 【A 生活者共通】道聞き、買い物、寮生活、雑談、教室、空港、レストラン
+- - 過去（did）
++ 【B ペルソナ】留学生活、職場、家庭、旅行
+- - be（is/are/was/were）
++ 【B' ロジカルシンキング】自己と将来、語学学校、キャリア
+- - 未来（will）
++ 【C 機能軸（functionTag）】確認する、情報を得る、理由・目的を問う、方法を問う、申し出る、提案する
+- - 現在完了（have/has）
++ ※ 各問は上記からランダムに sceneTag と functionTag を1つずつ選ぶ。MECE非保証・重複容認。
+- - 各問に必ず targetGap を設定。when/where/why/how は answerSense も設定
++ ※ 仮定法系（layer:2）は初版では出題しない。
+- - STEP4（副詞wh）の問題は answerSentence（模範の答え文）も付ける
++ - 時制は以下の核5時制から各問に割り当てて散らす:
+- - 各問の step は対象STEP集合から1つを割り当てる（総合モードでは完全ランダム）
++ - 現在（do/does）
+- 
++ - 過去（did）added_fm prompt-dumps/generate/step5.md -> pj-2026-06-28-09e8
+
+- 返却形式（JSONのみ、5要素の配列。各要素のスキーマは以下と同一）:
++ - be（is/are/was/were）
+- [
++ - 未来（will）
+-   {
++ - 現在完了（have/has）
+-     "id": "...", "step": 0, "sceneTag": "...", "functionTag": "...",
++ - 各問に必ず targetGap を設定。when/where/why/how は answerSense も設定
+-     "jp": "...", "targetGap": "...", "answerSense": null,
++ - STEP4（副詞wh）の問題は answerSentence（模範の答え文）も付ける
+-     "en": "...", "nuance": "...", "thread": "...", "answerSentence": null,
++ - 各問の step は対象STEP集合から1つを割り当てる（総合モードでは完全ランダム）
+-     "parts": [ { "role": "X|V|Y|Z", "text": "...", "note": "..." } ]
++ 
+-   }
++ 返却形式（JSONのみ、5要素の配列。各要素のスキーマは以下と同一）:
+- ]
++ [
+- 
++   {
+- nuance / note ルール:
++     "id": "...", "step": 0, "sceneTag": "...", "functionTag": "...",
+- - 模範解答がなぜその形になるかを 1〜2文で。語順・時制（どの助動詞を前に出したか／主語をたずねるwhでは助動詞を前に出さない 等）の該当点に触れる
++     "jp": "...", "targetGap": "...", "answerSense": null,
+- - why/how/when/where は answerSense（原因/目的・手段/様態・時点/節 等）にも1語触れる
++     "en": "...", "nuance": "...", "thread": "...", "answerSentence": null,
+- - **nuance・note には独自用語『糸/糸1/糸2』『X/Y/Z/V』を使わず、平易な日本語で書く**（例: ×「糸1を解除し」→ ○「助動詞を前に出さず、ふつうの語順にして」）
++     "parts": [ { "role": "X|V|Y|Z", "text": "...", "note": "..." } ]
+- ```
++   }
++ ]
++ 
++ nuance / note ルール:
++ - 模範解答がなぜその形になるかを 1〜2文で。語順・時制（どの助動詞を前に出したか／主語をたずねるwhでは助動詞を前に出さない 等）の該当点に触れる
++ - why/how/when/where は answerSense（原因/目的・手段/様態・時点/節 等）にも1語触れる
++ - **nuance・note には独自用語『糸/糸1/糸2』『X/Y/Z/V』を使わず、平易な日本語で書く**（例: ×「糸1を解除し」→ ○「助動詞を前に出さず、ふつうの語順にして」）
++ ```
+--- prompt-dumps/generate/step5.md
++++ prompt-dumps/generate/step5.md (added_fm pj-2026-06-28-09e8)
+
+- # Step 5 — 問題生成
++ ---
+- 
++ id: pj-2026-06-28-09e8
+- - 生成元: `buildGeneratePrompt()` in `src/prompts/generate.js`
++ aliases:
+- - 対象STEP: 5
++ - pj-2026-06-28-09e8
+- 
++ title: Step 5 — 問題生成
+- ## System
++ created: '2026-06-28'
+- 
++ ---
+- ```
++ # Step 5 — 問題生成
+- あなたは英語教育の専門家であり、疑問文産出ドリルの作問者です。
++ 
+- 学習者は日本語を読んで瞬発的に英語の疑問文を作る訓練をしています。
++ - 生成元: `buildGeneratePrompt()` in `src/prompts/generate.js`
+- 指定された STEP（操作）とシーンに沿って、出題用の日本語文と、その模範解答・根拠を生成してください。
++ - 対象STEP: 5
+- 必ず有効なJSONのみを返してください。マークダウンや説明文は一切含めないでください。
++ 
+- 
++ ## System
+- JSONの厳守ルール（grading-prompt.md と同一）:
++ 
+- - 文字列値はダブルクォートのみ使用（シングルクォート不可）
++ ```
+- - nuance/note 内で英文・英単語を引用するときは『』を使い、ダブルクォート(")は使わない
++ あなたは英語教育の専門家であり、疑問文産出ドリルの作問者です。
+- - 末尾カンマ禁止 / 生の改行禁止（必要なら \n）
++ 学習者は日本語を読んで瞬発的に英語の疑問文を作る訓練をしています。
+- - nuance と parts[].note は**平易な日本語**で書く。独自用語『糸／糸1／糸2』『X/Y/Z/V』は使わず、『助動詞を主語の前に出す』『疑問詞を文頭に動かす』『時を表す語句』のように日常語で説明する（role/thread のコードはJSONフィールドにのみ残す）
++ 指定された STEP（操作）とシーンに沿って、出題用の日本語文と、その模範解答・根拠を生成してください。
+- 
++ 必ず有効なJSONのみを返してください。マークダウンや説明文は一切含めないでください。
+- 作問の絶対ルール（取りこぼし厳禁）:
++ 
+- - 1文につき疑問詞は1つ（2つ同時に問わない）
++ JSONの厳守ルール（grading-prompt.md と同一）:
+- - 糸1（助動詞前置）は3機構を正しく使い分ける：本動詞が be→be前出 / 既存助動詞→それを前出 / 一般動詞で助動詞なし→do/does/did を挿入（be・既存助動詞があるとき do は使わない）
++ - 文字列値はダブルクォートのみ使用（シングルクォート不可）
+- - 主語を問う wh では糸1を起動しない（語順そのまま・時制は本動詞の活用に乗せる）
++ - nuance/note 内で英文・英単語を引用するときは『』を使い、ダブルクォート(")は使わない
+- - 間接疑問では従属節の糸1を解除する（do を消し平叙語順）。疑問詞は節頭に保持
++ - 末尾カンマ禁止 / 生の改行禁止（必要なら \n）
+- - 複雑な関係詞修飾で疑問文を飾り立てない（瞬発訓練の阻害）
++ - nuance と parts[].note は**平易な日本語**で書く。独自用語『糸／糸1／糸2』『X/Y/Z/V』は使わず、『助動詞を主語の前に出す』『疑問詞を文頭に動かす』『時を表す語句』のように日常語で説明する（role/thread のコードはJSONフィールドにのみ残す）
+- 一意性ルール（最重要）:
++ 作問の絶対ルール（取りこぼし厳禁）:
+- - 出題日本語は、targetGap で指定した1つのスロットだけが答えになるよう、曖昧さなく書く
++ - 1文につき疑問詞は1つ（2つ同時に問わない）
+- - targetGap が when/where/why/how のときは answerSense も固定し、その意味に一意に収束する日本語にする
++ - 糸1（助動詞前置）は3機構を正しく使い分ける：本動詞が be→be前出 / 既存助動詞→それを前出 / 一般動詞で助動詞なし→do/does/did を挿入（be・既存助動詞があるとき do は使わない）
+-   （例：why で purpose を狙うなら「何のために」と書き、cause と混ざらないようにする）
++ - 主語を問う wh では糸1を起動しない（語順そのまま・時制は本動詞の活用に乗せる）
+- ```
++ - 間接疑問では従属節の糸1を解除する（do を消し平叙語順）。疑問詞は節頭に保持
+- 
++ - 複雑な関係詞修飾で疑問文を飾り立てない（瞬発訓練の阻害）
+- ## User
++ 
+- 
++ 一意性ルール（最重要）:
+- ```
++ - 出題日本語は、targetGap で指定した1つのスロットだけが答えになるよう、曖昧さなく書く
+- 次の条件で疑問文ドリルを 5 問つくってください。
++ - targetGap が when/where/why/how のときは answerSense も固定し、その意味に一意に収束する日本語にする
+- 
++   （例：why で purpose を狙うなら「何のために」と書き、cause と混ざらないようにする）
+- - 対象STEP: 5
++ ```
+- - STEP定義:
++ 
+- STEP 5: 「どの〜」や前置詞で終わる疑問文 — Which book … ? / Who … with ?。targetGap候補: which+名詞 / what+名詞 / whose+名詞 / 前置詞残留
++ ## User
+- - 使用してよいシーン（彩り・話題は固定しない／毎問ランダムに1つ選ぶ）:
++ 
+- 【A 生活者共通】道聞き、買い物、寮生活、雑談、教室、空港、レストラン
++ ```
+- 【B ペルソナ】留学生活、職場、家庭、旅行
++ 次の条件で疑問文ドリルを 5 問つくってください。
+- 【B' ロジカルシンキング】自己と将来、語学学校、キャリア
++ 
+- 【C 機能軸（functionTag）】確認する、情報を得る、理由・目的を問う、方法を問う、申し出る、提案するadded_fm prompt-dumps/generate/step6.md -> pj-2026-06-28-1dae
+
++ - 対象STEP: 5
+- ※ 各問は上記からランダムに sceneTag と functionTag を1つずつ選ぶ。MECE非保証・重複容認。
++ - STEP定義:
+- ※ 仮定法系（layer:2）は初版では出題しない。
++ STEP 5: 「どの〜」や前置詞で終わる疑問文 — Which book … ? / Who … with ?。targetGap候補: which+名詞 / what+名詞 / whose+名詞 / 前置詞残留
+- - 時制は以下の核5時制から各問に割り当てて散らす:
++ - 使用してよいシーン（彩り・話題は固定しない／毎問ランダムに1つ選ぶ）:
+- - 現在（do/does）
++ 【A 生活者共通】道聞き、買い物、寮生活、雑談、教室、空港、レストラン
+- - 過去（did）
++ 【B ペルソナ】留学生活、職場、家庭、旅行
+- - be（is/are/was/were）
++ 【B' ロジカルシンキング】自己と将来、語学学校、キャリア
+- - 未来（will）
++ 【C 機能軸（functionTag）】確認する、情報を得る、理由・目的を問う、方法を問う、申し出る、提案する
+- - 現在完了（have/has）
++ ※ 各問は上記からランダムに sceneTag と functionTag を1つずつ選ぶ。MECE非保証・重複容認。
+- - 各問に必ず targetGap を設定。when/where/why/how は answerSense も設定
++ ※ 仮定法系（layer:2）は初版では出題しない。
+- - STEP4（副詞wh）の問題は answerSentence（模範の答え文）も付ける
++ - 時制は以下の核5時制から各問に割り当てて散らす:
+- - 各問の step は対象STEP集合から1つを割り当てる（総合モードでは完全ランダム）
++ - 現在（do/does）
+- 
++ - 過去（did）
+- 返却形式（JSONのみ、5要素の配列。各要素のスキーマは以下と同一）:
++ - be（is/are/was/were）
+- [
++ - 未来（will）
+-   {
++ - 現在完了（have/has）
+-     "id": "...", "step": 0, "sceneTag": "...", "functionTag": "...",
++ - 各問に必ず targetGap を設定。when/where/why/how は answerSense も設定
+-     "jp": "...", "targetGap": "...", "answerSense": null,
++ - STEP4（副詞wh）の問題は answerSentence（模範の答え文）も付ける
+-     "en": "...", "nuance": "...", "thread": "...", "answerSentence": null,
++ - 各問の step は対象STEP集合から1つを割り当てる（総合モードでは完全ランダム）
+-     "parts": [ { "role": "X|V|Y|Z", "text": "...", "note": "..." } ]
++ 
+-   }
++ 返却形式（JSONのみ、5要素の配列。各要素のスキーマは以下と同一）:
+- ]
++ [
+- 
++   {
+- nuance / note ルール:
++     "id": "...", "step": 0, "sceneTag": "...", "functionTag": "...",
+- - 模範解答がなぜその形になるかを 1〜2文で。語順・時制（どの助動詞を前に出したか／主語をたずねるwhでは助動詞を前に出さない 等）の該当点に触れる
++     "jp": "...", "targetGap": "...", "answerSense": null,
+- - why/how/when/where は answerSense（原因/目的・手段/様態・時点/節 等）にも1語触れる
++     "en": "...", "nuance": "...", "thread": "...", "answerSentence": null,
+- - **nuance・note には独自用語『糸/糸1/糸2』『X/Y/Z/V』を使わず、平易な日本語で書く**（例: ×「糸1を解除し」→ ○「助動詞を前に出さず、ふつうの語順にして」）
++     "parts": [ { "role": "X|V|Y|Z", "text": "...", "note": "..." } ]
+- ```
++   }
++ ]
++ 
++ nuance / note ルール:
++ - 模範解答がなぜその形になるかを 1〜2文で。語順・時制（どの助動詞を前に出したか／主語をたずねるwhでは助動詞を前に出さない 等）の該当点に触れる
++ - why/how/when/where は answerSense（原因/目的・手段/様態・時点/節 等）にも1語触れる
++ - **nuance・note には独自用語『糸/糸1/糸2』『X/Y/Z/V』を使わず、平易な日本語で書く**（例: ×「糸1を解除し」→ ○「助動詞を前に出さず、ふつうの語順にして」）
++ ```
+--- prompt-dumps/generate/step6.md
++++ prompt-dumps/generate/step6.md (added_fm pj-2026-06-28-1dae)
+
+- # Step 6 — 問題生成
++ ---
+- 
++ id: pj-2026-06-28-1dae
+- - 生成元: `buildGeneratePrompt()` in `src/prompts/generate.js`
++ aliases:
+- - 対象STEP: 6
++ - pj-2026-06-28-1dae
+- 
++ title: Step 6 — 問題生成
+- ## System
++ created: '2026-06-28'
+- 
++ ---
+- ```
++ # Step 6 — 問題生成
+- あなたは英語教育の専門家であり、疑問文産出ドリルの作問者です。
++ 
+- 学習者は日本語を読んで瞬発的に英語の疑問文を作る訓練をしています。
++ - 生成元: `buildGeneratePrompt()` in `src/prompts/generate.js`
+- 指定された STEP（操作）とシーンに沿って、出題用の日本語文と、その模範解答・根拠を生成してください。
++ - 対象STEP: 6
+- 必ず有効なJSONのみを返してください。マークダウンや説明文は一切含めないでください。
++ 
+- 
++ ## System
+- JSONの厳守ルール（grading-prompt.md と同一）:
++ 
+- - 文字列値はダブルクォートのみ使用（シングルクォート不可）
++ ```
+- - nuance/note 内で英文・英単語を引用するときは『』を使い、ダブルクォート(")は使わない
++ あなたは英語教育の専門家であり、疑問文産出ドリルの作問者です。
+- - 末尾カンマ禁止 / 生の改行禁止（必要なら \n）
++ 学習者は日本語を読んで瞬発的に英語の疑問文を作る訓練をしています。
+- - nuance と parts[].note は**平易な日本語**で書く。独自用語『糸／糸1／糸2』『X/Y/Z/V』は使わず、『助動詞を主語の前に出す』『疑問詞を文頭に動かす』『時を表す語句』のように日常語で説明する（role/thread のコードはJSONフィールドにのみ残す）
++ 指定された STEP（操作）とシーンに沿って、出題用の日本語文と、その模範解答・根拠を生成してください。
+- 
++ 必ず有効なJSONのみを返してください。マークダウンや説明文は一切含めないでください。
+- 作問の絶対ルール（取りこぼし厳禁）:
++ 
+- - 1文につき疑問詞は1つ（2つ同時に問わない）
++ JSONの厳守ルール（grading-prompt.md と同一）:
+- - 糸1（助動詞前置）は3機構を正しく使い分ける：本動詞が be→be前出 / 既存助動詞→それを前出 / 一般動詞で助動詞なし→do/does/did を挿入（be・既存助動詞があるとき do は使わない）
++ - 文字列値はダブルクォートのみ使用（シングルクォート不可）
+- - 主語を問う wh では糸1を起動しない（語順そのまま・時制は本動詞の活用に乗せる）
++ - nuance/note 内で英文・英単語を引用するときは『』を使い、ダブルクォート(")は使わない
+- - 間接疑問では従属節の糸1を解除する（do を消し平叙語順）。疑問詞は節頭に保持
++ - 末尾カンマ禁止 / 生の改行禁止（必要なら \n）
+- - 複雑な関係詞修飾で疑問文を飾り立てない（瞬発訓練の阻害）
++ - nuance と parts[].note は**平易な日本語**で書く。独自用語『糸／糸1／糸2』『X/Y/Z/V』は使わず、『助動詞を主語の前に出す』『疑問詞を文頭に動かす』『時を表す語句』のように日常語で説明する（role/thread のコードはJSONフィールドにのみ残す）
+- 一意性ルール（最重要）:
++ 作問の絶対ルール（取りこぼし厳禁）:
+- - 出題日本語は、targetGap で指定した1つのスロットだけが答えになるよう、曖昧さなく書く
++ - 1文につき疑問詞は1つ（2つ同時に問わない）
+- - targetGap が when/where/why/how のときは answerSense も固定し、その意味に一意に収束する日本語にする
++ - 糸1（助動詞前置）は3機構を正しく使い分ける：本動詞が be→be前出 / 既存助動詞→それを前出 / 一般動詞で助動詞なし→do/does/did を挿入（be・既存助動詞があるとき do は使わない）
+-   （例：why で purpose を狙うなら「何のために」と書き、cause と混ざらないようにする）added_fm prompt-dumps/generate/step7.md -> pj-2026-06-28-025a
+
++ - 主語を問う wh では糸1を起動しない（語順そのまま・時制は本動詞の活用に乗せる）
+- ```
++ - 間接疑問では従属節の糸1を解除する（do を消し平叙語順）。疑問詞は節頭に保持
+- 
++ - 複雑な関係詞修飾で疑問文を飾り立てない（瞬発訓練の阻害）
+- ## User
++ 
+- 
++ 一意性ルール（最重要）:
+- ```
++ - 出題日本語は、targetGap で指定した1つのスロットだけが答えになるよう、曖昧さなく書く
+- 次の条件で疑問文ドリルを 5 問つくってください。
++ - targetGap が when/where/why/how のときは answerSense も固定し、その意味に一意に収束する日本語にする
+- 
++   （例：why で purpose を狙うなら「何のために」と書き、cause と混ざらないようにする）
+- - 対象STEP: 6
++ ```
+- - STEP定義:
++ 
+- STEP 6: 間接疑問 — 文の中に疑問を埋め込む（Do you know where … ?）。targetGap候補: 従属節gap / 疑問詞+to不定詞
++ ## User
+- - 使用してよいシーン（彩り・話題は固定しない／毎問ランダムに1つ選ぶ）:
++ 
+- 【A 生活者共通】道聞き、買い物、寮生活、雑談、教室、空港、レストラン
++ ```
+- 【B ペルソナ】留学生活、職場、家庭、旅行
++ 次の条件で疑問文ドリルを 5 問つくってください。
+- 【B' ロジカルシンキング】自己と将来、語学学校、キャリア
++ 
+- 【C 機能軸（functionTag）】確認する、情報を得る、理由・目的を問う、方法を問う、申し出る、提案する
++ - 対象STEP: 6
+- ※ 各問は上記からランダムに sceneTag と functionTag を1つずつ選ぶ。MECE非保証・重複容認。
++ - STEP定義:
+- ※ 仮定法系（layer:2）は初版では出題しない。
++ STEP 6: 間接疑問 — 文の中に疑問を埋め込む（Do you know where … ?）。targetGap候補: 従属節gap / 疑問詞+to不定詞
+- - 時制は以下の核5時制から各問に割り当てて散らす:
++ - 使用してよいシーン（彩り・話題は固定しない／毎問ランダムに1つ選ぶ）:
+- - 現在（do/does）
++ 【A 生活者共通】道聞き、買い物、寮生活、雑談、教室、空港、レストラン
+- - 過去（did）
++ 【B ペルソナ】留学生活、職場、家庭、旅行
+- - be（is/are/was/were）
++ 【B' ロジカルシンキング】自己と将来、語学学校、キャリア
+- - 未来（will）
++ 【C 機能軸（functionTag）】確認する、情報を得る、理由・目的を問う、方法を問う、申し出る、提案する
+- - 現在完了（have/has）
++ ※ 各問は上記からランダムに sceneTag と functionTag を1つずつ選ぶ。MECE非保証・重複容認。
+- - 各問に必ず targetGap を設定。when/where/why/how は answerSense も設定
++ ※ 仮定法系（layer:2）は初版では出題しない。
+- - STEP4（副詞wh）の問題は answerSentence（模範の答え文）も付ける
++ - 時制は以下の核5時制から各問に割り当てて散らす:
+- - 各問の step は対象STEP集合から1つを割り当てる（総合モードでは完全ランダム）
++ - 現在（do/does）
+- 
++ - 過去（did）
+- 返却形式（JSONのみ、5要素の配列。各要素のスキーマは以下と同一）:
++ - be（is/are/was/were）
+- [
++ - 未来（will）
+-   {
++ - 現在完了（have/has）
+-     "id": "...", "step": 0, "sceneTag": "...", "functionTag": "...",
++ - 各問に必ず targetGap を設定。when/where/why/how は answerSense も設定
+-     "jp": "...", "targetGap": "...", "answerSense": null,
++ - STEP4（副詞wh）の問題は answerSentence（模範の答え文）も付ける
+-     "en": "...", "nuance": "...", "thread": "...", "answerSentence": null,
++ - 各問の step は対象STEP集合から1つを割り当てる（総合モードでは完全ランダム）
+-     "parts": [ { "role": "X|V|Y|Z", "text": "...", "note": "..." } ]
++ 
+-   }
++ 返却形式（JSONのみ、5要素の配列。各要素のスキーマは以下と同一）:
+- ]
++ [
+- 
++   {
+- nuance / note ルール:
++     "id": "...", "step": 0, "sceneTag": "...", "functionTag": "...",
+- - 模範解答がなぜその形になるかを 1〜2文で。語順・時制（どの助動詞を前に出したか／主語をたずねるwhでは助動詞を前に出さない 等）の該当点に触れる
++     "jp": "...", "targetGap": "...", "answerSense": null,
+- - why/how/when/where は answerSense（原因/目的・手段/様態・時点/節 等）にも1語触れる
++     "en": "...", "nuance": "...", "thread": "...", "answerSentence": null,
+- - **nuance・note には独自用語『糸/糸1/糸2』『X/Y/Z/V』を使わず、平易な日本語で書く**（例: ×「糸1を解除し」→ ○「助動詞を前に出さず、ふつうの語順にして」）
++     "parts": [ { "role": "X|V|Y|Z", "text": "...", "note": "..." } ]
+- ```
++   }
++ ]
++ 
++ nuance / note ルール:
++ - 模範解答がなぜその形になるかを 1〜2文で。語順・時制（どの助動詞を前に出したか／主語をたずねるwhでは助動詞を前に出さない 等）の該当点に触れる
++ - why/how/when/where は answerSense（原因/目的・手段/様態・時点/節 等）にも1語触れる
++ - **nuance・note には独自用語『糸/糸1/糸2』『X/Y/Z/V』を使わず、平易な日本語で書く**（例: ×「糸1を解除し」→ ○「助動詞を前に出さず、ふつうの語順にして」）
++ ```
+--- prompt-dumps/generate/step7.md
++++ prompt-dumps/generate/step7.md (added_fm pj-2026-06-28-025a)
+
+- # Step 7 — 問題生成
++ ---
+- 
++ id: pj-2026-06-28-025a
+- - 生成元: `buildGeneratePrompt()` in `src/prompts/generate.js`
++ aliases:
+- - 対象STEP: 7
++ - pj-2026-06-28-025a
+- 
++ title: Step 7 — 問題生成
+- ## System
++ created: '2026-06-28'
+- 
++ ---
+- ```
++ # Step 7 — 問題生成
+- あなたは英語教育の専門家であり、疑問文産出ドリルの作問者です。
++ 
+- 学習者は日本語を読んで瞬発的に英語の疑問文を作る訓練をしています。
++ - 生成元: `buildGeneratePrompt()` in `src/prompts/generate.js`
+- 指定された STEP（操作）とシーンに沿って、出題用の日本語文と、その模範解答・根拠を生成してください。
++ - 対象STEP: 7
+- 必ず有効なJSONのみを返してください。マークダウンや説明文は一切含めないでください。
++ 
+- 
++ ## System
+- JSONの厳守ルール（grading-prompt.md と同一）:
++ 
+- - 文字列値はダブルクォートのみ使用（シングルクォート不可）
++ ```
+- - nuance/note 内で英文・英単語を引用するときは『』を使い、ダブルクォート(")は使わない
++ あなたは英語教育の専門家であり、疑問文産出ドリルの作問者です。
+- - 末尾カンマ禁止 / 生の改行禁止（必要なら \n）
++ 学習者は日本語を読んで瞬発的に英語の疑問文を作る訓練をしています。
+- - nuance と parts[].note は**平易な日本語**で書く。独自用語『糸／糸1／糸2』『X/Y/Z/V』は使わず、『助動詞を主語の前に出す』『疑問詞を文頭に動かす』『時を表す語句』のように日常語で説明する（role/thread のコードはJSONフィールドにのみ残す）
++ 指定された STEP（操作）とシーンに沿って、出題用の日本語文と、その模範解答・根拠を生成してください。
+- 
++ 必ず有効なJSONのみを返してください。マークダウンや説明文は一切含めないでください。
+- 作問の絶対ルール（取りこぼし厳禁）:
++ 
+- - 1文につき疑問詞は1つ（2つ同時に問わない）
++ JSONの厳守ルール（grading-prompt.md と同一）:
+- - 糸1（助動詞前置）は3機構を正しく使い分ける：本動詞が be→be前出 / 既存助動詞→それを前出 / 一般動詞で助動詞なし→do/does/did を挿入（be・既存助動詞があるとき do は使わない）
++ - 文字列値はダブルクォートのみ使用（シングルクォート不可）added_fm question-trainer-cursor-work-request.md -> pj-2026-06-28-bf21
+
+- - 主語を問う wh では糸1を起動しない（語順そのまま・時制は本動詞の活用に乗せる）
++ - nuance/note 内で英文・英単語を引用するときは『』を使い、ダブルクォート(")は使わない
+- - 間接疑問では従属節の糸1を解除する（do を消し平叙語順）。疑問詞は節頭に保持
++ - 末尾カンマ禁止 / 生の改行禁止（必要なら \n）
+- - 複雑な関係詞修飾で疑問文を飾り立てない（瞬発訓練の阻害）
++ - nuance と parts[].note は**平易な日本語**で書く。独自用語『糸／糸1／糸2』『X/Y/Z/V』は使わず、『助動詞を主語の前に出す』『疑問詞を文頭に動かす』『時を表す語句』のように日常語で説明する（role/thread のコードはJSONフィールドにのみ残す）
+- 一意性ルール（最重要）:
++ 作問の絶対ルール（取りこぼし厳禁）:
+- - 出題日本語は、targetGap で指定した1つのスロットだけが答えになるよう、曖昧さなく書く
++ - 1文につき疑問詞は1つ（2つ同時に問わない）
+- - targetGap が when/where/why/how のときは answerSense も固定し、その意味に一意に収束する日本語にする
++ - 糸1（助動詞前置）は3機構を正しく使い分ける：本動詞が be→be前出 / 既存助動詞→それを前出 / 一般動詞で助動詞なし→do/does/did を挿入（be・既存助動詞があるとき do は使わない）
+-   （例：why で purpose を狙うなら「何のために」と書き、cause と混ざらないようにする）
++ - 主語を問う wh では糸1を起動しない（語順そのまま・時制は本動詞の活用に乗せる）
+- ```
++ - 間接疑問では従属節の糸1を解除する（do を消し平叙語順）。疑問詞は節頭に保持
+- 
++ - 複雑な関係詞修飾で疑問文を飾り立てない（瞬発訓練の阻害）
+- ## User
++ 
+- 
++ 一意性ルール（最重要）:
+- ```
++ - 出題日本語は、targetGap で指定した1つのスロットだけが答えになるよう、曖昧さなく書く
+- 次の条件で疑問文ドリルを 5 問つくってください。
++ - targetGap が when/where/why/how のときは answerSense も固定し、その意味に一意に収束する日本語にする
+- 
++   （例：why で purpose を狙うなら「何のために」と書き、cause と混ざらないようにする）
+- - 対象STEP: 7
++ ```
+- - STEP定義:
++ 
+- STEP 7: 選択・否定の疑問文 — or B? / Don't you … ?。targetGap候補: alternative / negative
++ ## User
+- - 使用してよいシーン（彩り・話題は固定しない／毎問ランダムに1つ選ぶ）:
++ 
+- 【A 生活者共通】道聞き、買い物、寮生活、雑談、教室、空港、レストラン
++ ```
+- 【B ペルソナ】留学生活、職場、家庭、旅行
++ 次の条件で疑問文ドリルを 5 問つくってください。
+- 【B' ロジカルシンキング】自己と将来、語学学校、キャリア
++ 
+- 【C 機能軸（functionTag）】確認する、情報を得る、理由・目的を問う、方法を問う、申し出る、提案する
++ - 対象STEP: 7
+- ※ 各問は上記からランダムに sceneTag と functionTag を1つずつ選ぶ。MECE非保証・重複容認。
++ - STEP定義:
+- ※ 仮定法系（layer:2）は初版では出題しない。
++ STEP 7: 選択・否定の疑問文 — or B? / Don't you … ?。targetGap候補: alternative / negative
+- - 時制は以下の核5時制から各問に割り当てて散らす:
++ - 使用してよいシーン（彩り・話題は固定しない／毎問ランダムに1つ選ぶ）:
+- - 現在（do/does）
++ 【A 生活者共通】道聞き、買い物、寮生活、雑談、教室、空港、レストラン
+- - 過去（did）
++ 【B ペルソナ】留学生活、職場、家庭、旅行
+- - be（is/are/was/were）
++ 【B' ロジカルシンキング】自己と将来、語学学校、キャリア
+- - 未来（will）
++ 【C 機能軸（functionTag）】確認する、情報を得る、理由・目的を問う、方法を問う、申し出る、提案する
+- - 現在完了（have/has）
++ ※ 各問は上記からランダムに sceneTag と functionTag を1つずつ選ぶ。MECE非保証・重複容認。
+- - 各問に必ず targetGap を設定。when/where/why/how は answerSense も設定
++ ※ 仮定法系（layer:2）は初版では出題しない。
+- - STEP4（副詞wh）の問題は answerSentence（模範の答え文）も付ける
++ - 時制は以下の核5時制から各問に割り当てて散らす:
+- - 各問の step は対象STEP集合から1つを割り当てる（総合モードでは完全ランダム）
++ - 現在（do/does）
+- 
++ - 過去（did）
+- 返却形式（JSONのみ、5要素の配列。各要素のスキーマは以下と同一）:
++ - be（is/are/was/were）
+- [
++ - 未来（will）
+-   {
++ - 現在完了（have/has）
+-     "id": "...", "step": 0, "sceneTag": "...", "functionTag": "...",
++ - 各問に必ず targetGap を設定。when/where/why/how は answerSense も設定
+-     "jp": "...", "targetGap": "...", "answerSense": null,
++ - STEP4（副詞wh）の問題は answerSentence（模範の答え文）も付ける
+-     "en": "...", "nuance": "...", "thread": "...", "answerSentence": null,
++ - 各問の step は対象STEP集合から1つを割り当てる（総合モードでは完全ランダム）
+-     "parts": [ { "role": "X|V|Y|Z", "text": "...", "note": "..." } ]
++ 
+-   }
++ 返却形式（JSONのみ、5要素の配列。各要素のスキーマは以下と同一）:
+- ]
++ [
+- 
++   {
+- nuance / note ルール:
++     "id": "...", "step": 0, "sceneTag": "...", "functionTag": "...",
+- - 模範解答がなぜその形になるかを 1〜2文で。語順・時制（どの助動詞を前に出したか／主語をたずねるwhでは助動詞を前に出さない 等）の該当点に触れる
++     "jp": "...", "targetGap": "...", "answerSense": null,
+- - why/how/when/where は answerSense（原因/目的・手段/様態・時点/節 等）にも1語触れる
++     "en": "...", "nuance": "...", "thread": "...", "answerSentence": null,
+- - **nuance・note には独自用語『糸/糸1/糸2』『X/Y/Z/V』を使わず、平易な日本語で書く**（例: ×「糸1を解除し」→ ○「助動詞を前に出さず、ふつうの語順にして」）
++     "parts": [ { "role": "X|V|Y|Z", "text": "...", "note": "..." } ]
+- ```
++   }
++ ]
++ 
++ nuance / note ルール:
++ - 模範解答がなぜその形になるかを 1〜2文で。語順・時制（どの助動詞を前に出したか／主語をたずねるwhでは助動詞を前に出さない 等）の該当点に触れる
++ - why/how/when/where は answerSense（原因/目的・手段/様態・時点/節 等）にも1語触れる
++ - **nuance・note には独自用語『糸/糸1/糸2』『X/Y/Z/V』を使わず、平易な日本語で書く**（例: ×「糸1を解除し」→ ○「助動詞を前に出さず、ふつうの語順にして」）
++ ```
+--- question-trainer-cursor-work-request.md
++++ question-trainer-cursor-work-request.md (added_fm pj-2026-06-28-bf21)
+
+- # Cursor Work-Request — English-Question-Trainer 新規構築
++ ---
+- 
++ id: pj-2026-06-28-bf21
+- > **リポジトリ**: https://github.com/nkhippo/English-Question-Trainer
++ aliases:
+- > **方針**: 既存の `english-structure-trainer` の規約・アーキテクチャを踏襲した**新規リポジトリ**を構築する。下の「§4 既存トレーナーから意図的に変える点」だけは明示的に異なるので厳守すること。
++ - pj-2026-06-28-bf21
+- 
++ title: Cursor Work-Request — English-Question-Trainer 新規構築
+- ---
++ created: '2026-06-28'
+- 
++ ---
+- ## 0. 正本（source of truth）とドリフト防止
++ # Cursor Work-Request — English-Question-Trainer 新規構築
+- 実装の判断は、以下4つの正本ドキュメントに従う。**これらと矛盾するコードを書かないこと。**
++ > **リポジトリ**: https://github.com/nkhippo/English-Question-Trainer
+- 
++ > **方針**: 既存の `english-structure-trainer` の規約・アーキテクチャを踏襲した**新規リポジトリ**を構築する。下の「§4 既存トレーナーから意図的に変える点」だけは明示的に異なるので厳守すること。
+- | 正本 | 役割 |
++ 
+- |---|---|
++ ---
+- | `question-trainer-requirements-design.md` | 要件・設計（最上位。迷ったらこれ） |
++ 
+- | `question-trainer-structure-map.md` | 文法スコープ・STEP定義・シーンプール・メタデータ |
++ ## 0. 正本（source of truth）とドリフト防止
+- | `question-trainer-decision-tree.svg` | 生成ロジックの分岐（不変条件の根拠） |
++ 
+- | `question-trainer-prototype.html` | **UIの視覚的正本**。画面構成・配色・コンポーネント分割はこれを再現する |
++ 実装の判断は、以下4つの正本ドキュメントに従う。**これらと矛盾するコードを書かないこと。**
+- **ドリフト防止（必須）**:
++ | 正本 | 役割 |
+- - 本書に書かれた関数名・定数・スキーマを**勝手に改名しない**。変更が必要なら理由をコメントで残す。
++ |---|---|
+- - プロンプト本文・JSONスキーマ・バリデーション条件は**正本どおり**に実装し、要約・省略しない。
++ | `question-trainer-requirements-design.md` | 要件・設計（最上位。迷ったらこれ） |
+- - 既存トレーナーのファイルを参照するときは、**実コードを開いて確認**してから真似る（ドキュメント先行で書かない）。
++ | `question-trainer-structure-map.md` | 文法スコープ・STEP定義・シーンプール・メタデータ |
+- 
++ | `question-trainer-decision-tree.svg` | 生成ロジックの分岐（不変条件の根拠） |
+- ---
++ | `question-trainer-prototype.html` | **UIの視覚的正本**。画面構成・配色・コンポーネント分割はこれを再現する |
+- ## 1. リポジトリ前提
++ **ドリフト防止（必須）**:
+- 
++ - 本書に書かれた関数名・定数・スキーマを**勝手に改名しない**。変更が必要なら理由をコメントで残す。
+- - スタック: **React + Vite**、GitHub Pages デプロイ、**Google Apps Script (GAS) プロキシ**経由で Claude API を呼ぶ。
++ - プロンプト本文・JSONスキーマ・バリデーション条件は**正本どおり**に実装し、要約・省略しない。
+- - 既存トレーナー（`english-structure-trainer`）の以下の規約を踏襲する:
++ - 既存トレーナーのファイルを参照するときは、**実コードを開いて確認**してから真似る（ドキュメント先行で書かない）。
+-   - `src/api/claude.js` の呼び出しパターン
++ 
+-   - `src/prompts/` にプロンプト構築関数を集約
++ ---
+-   - `src/constants/` に steps / roles などの定数
++ 
+-   - `src/components/` に画面部品（`QuestionCard.jsx`, `PartBreakdown.jsx` 等の命名感）
++ ## 1. リポジトリ前提
+-   - `prompt-dumps/` + `scripts/dump-prompts.mjs` でプロンプトをMDダンプ
++ 
+-   - ルート直下に設計ドキュメント `*.md` を置く運用
++ - スタック: **React + Vite**、GitHub Pages デプロイ、**Google Apps Script (GAS) プロキシ**経由で Claude API を呼ぶ。
+-   - `.github/workflows/deploy.yml` で Pages デプロイ
++ - 既存トレーナー（`english-structure-trainer`）の以下の規約を踏襲する:
+- 
++   - `src/api/claude.js` の呼び出しパターン
+- ---
++   - `src/prompts/` にプロンプト構築関数を集約
+- 
++   - `src/constants/` に steps / roles などの定数
+- ## 2. ターゲットファイルツリー
++   - `src/components/` に画面部品（`QuestionCard.jsx`, `PartBreakdown.jsx` 等の命名感）
+- 
++   - `prompt-dumps/` + `scripts/dump-prompts.mjs` でプロンプトをMDダンプ
+- `[新規]`=新しく書く / `[流用]`=構造トレーナーから移植・パターン踏襲 / `[正本]`=既存ドキュメントをコピー配置
++   - ルート直下に設計ドキュメント `*.md` を置く運用
+- 
++   - `.github/workflows/deploy.yml` で Pages デプロイ
+- ```
++ 
+- English-Question-Trainer/
++ ---
+- ├── .github/workflows/deploy.yml          [流用] Pages デプロイ（base path だけ変更）
++ 
+- ├── prompt-dumps/
++ ## 2. ターゲットファイルツリー
+- │   ├── generate/
++ 
+- │   │   ├── step1.md … step7.md           [新規] 各STEPの生成プロンプトのダンプ
++ `[新規]`=新しく書く / `[流用]`=構造トレーナーから移植・パターン踏襲 / `[正本]`=既存ドキュメントをコピー配置
+- │   │   └── combined.md                    [新規] 総合モードのダンプ例
++ 
+- │   └── README.md                          [流用]
++ ```
+- ├── scripts/
++ English-Question-Trainer/
+- │   └── dump-prompts.mjs                   [流用] 生成プロンプトを prompt-dumps/ に出力
++ ├── .github/workflows/deploy.yml          [流用] Pages デプロイ（base path だけ変更）
+- ├── gas/
++ ├── prompt-dumps/
+- │   └── proxy.gs                           [新規] GASプロキシ（APIキー秘匿）
++ │   ├── generate/
+- ├── src/
++ │   │   ├── step1.md … step7.md           [新規] 各STEPの生成プロンプトのダンプ
+- │   ├── api/
++ │   │   └── combined.md                    [新規] 総合モードのダンプ例
+- │   │   └── claude.js                      [新規] generateBatch() 1コール（§5）
++ │   └── README.md                          [流用]
+- │   ├── assets/
++ ├── scripts/
+- │   │   ├── structure-map.md               [正本] question-trainer-structure-map.md を配置
++ │   └── dump-prompts.mjs                   [流用] 生成プロンプトを prompt-dumps/ に出力
+- │   │   └── textbook.md                    [流用] X/Y/Z/V 参照（任意）
++ ├── gas/
+- │   ├── components/
++ │   └── proxy.gs                           [新規] GASプロキシ（APIキー秘匿）
+- │   │   ├── Header.jsx                     [新規] 織機モチーフ＋ワードマーク
++ ├── src/
+- │   │   ├── ProgressRail.jsx               [新規] 4フェーズ進捗バー
++ │   ├── api/
+- │   │   ├── ModeToggle.jsx                 [新規] STEP個別／総合
++ │   │   └── claude.js                      [新規] generateBatch() 1コール（§5）
+- │   │   ├── StepSelect.jsx                 [新規] 7 STEPカード（選択）
++ │   ├── assets/
+- │   │   ├── ThreadTag.jsx                  [新規] 糸1/糸2/糸1+糸2/糸1解除 タグ
++ │   │   ├── structure-map.md               [正本] question-trainer-structure-map.md を配置
+- │   │   ├── QuestionCard.jsx               [流用] 出題：jp + textarea
++ │   │   └── textbook.md                    [流用] X/Y/Z/V 参照（任意）
+- │   │   ├── ReviewCard.jsx                 [新規] 模範解答＋ポイント＋メタ＋構造分解
++ │   ├── components/
+- │   │   ├── PartBreakdown.jsx              [流用] X/Y/Z/V チップ（構造トレーナーから移植）
++ │   │   ├── Header.jsx                     [新規] 織機モチーフ＋ワードマーク
+- │   │   └── ExportPanel.jsx                [新規] MDプレビュー＋DL/コピー
++ │   │   ├── ProgressRail.jsx               [新規] 4フェーズ進捗バー
+- │   ├── constants/
++ │   │   ├── ModeToggle.jsx                 [新規] STEP個別／総合
+- │   │   ├── steps.js                       [新規] 7 STEP定義（§6）
++ │   │   ├── StepSelect.jsx                 [新規] 7 STEPカード（選択）
+- │   │   ├── scenePool.js                   [新規] シーン/機能プール（structure-map §9）
++ │   │   ├── ThreadTag.jsx                  [新規] 糸1/糸2/糸1+糸2/糸1解除 タグ
+- │   │   ├── roles.js                       [流用] X/Y/Z/V 役割メタ
++ │   │   ├── QuestionCard.jsx               [流用] 出題：jp + textarea
+- │   │   └── coreTenses.js                  [新規] 核5時制
++ │   │   ├── ReviewCard.jsx                 [新規] 模範解答＋ポイント＋メタ＋構造分解
+- │   ├── prompts/
++ │   │   ├── PartBreakdown.jsx              [流用] X/Y/Z/V チップ（構造トレーナーから移植）
+- │   │   ├── generate.js                    [新規] buildGeneratePrompt()
++ │   │   └── ExportPanel.jsx                [新規] MDプレビュー＋DL/コピー
+- │   │   └── shared.js                      [新規] system文・JSON規約・不変条件文言
++ │   ├── constants/
+- │   ├── utils/
++ │   │   ├── steps.js                       [新規] 7 STEP定義（§6）
+- │   │   ├── validateItems.js               [新規] 不変条件のコード強制（§7）
++ │   │   ├── scenePool.js                   [新規] シーン/機能プール（structure-map §9）
+- │   │   ├── formatExportMarkdown.js        [流用] MD整形（formatResultsMarkdown を下敷き）
++ │   │   ├── roles.js                       [流用] X/Y/Z/V 役割メタ
+- │   │   └── parts.js                       [流用] 構造分解整形
++ │   │   └── coreTenses.js                  [新規] 核5時制
+- │   ├── App.jsx                            [新規] フェーズ状態機械（§8）
++ │   ├── prompts/
+- │   └── main.jsx                           [流用]
++ │   │   ├── generate.js                    [新規] buildGeneratePrompt()
+- ├── index.html                             [流用]
++ │   │   └── shared.js                      [新規] system文・JSON規約・不変条件文言
+- ├── package.json                           [流用] 依存を踏襲
++ │   ├── utils/
+- ├── vite.config.js                         [流用] base を変更
++ │   │   ├── validateItems.js               [新規] 不変条件のコード強制（§7）
+- ├── README.md                              [新規]
++ │   │   ├── formatExportMarkdown.js        [流用] MD整形（formatResultsMarkdown を下敷き）
+- ├── question-trainer-requirements-design.md [正本] ルート配置
++ │   │   └── parts.js                       [流用] 構造分解整形
+- ├── question-trainer-structure-map.md       [正本] ルート配置
++ │   ├── App.jsx                            [新規] フェーズ状態機械（§8）
+- ├── question-trainer-decision-tree.svg      [正本] ルート配置
++ │   └── main.jsx                           [流用]
+- └── .gitignore                              [流用]
++ ├── index.html                             [流用]
+- ```
++ ├── package.json                           [流用] 依存を踏襲
+- 
++ ├── vite.config.js                         [流用] base を変更
+- ---
++ ├── README.md                              [新規]
+- 
++ ├── question-trainer-requirements-design.md [正本] ルート配置
+- ## 3. 既存トレーナーから流用するパターン（mirror）
++ ├── question-trainer-structure-map.md       [正本] ルート配置
+- 
++ ├── question-trainer-decision-tree.svg      [正本] ルート配置
+- - **`PartBreakdown.jsx`**: X/Y/Z/V を色付きチップで表示する既存コンポーネントをほぼそのまま移植。役割色はプロトタイプの `--rX/--rV/--rY/--rZ` に合わせる。
++ └── .gitignore                              [流用]
+- - **`utils/parts.js`**: `parts[]` をネスト整形するロジック（grading-prompt.md の `formatPartsForCheck` 相当）。MDエクスポートと画面表示の両方で使う。
++ ```
+- - **`utils/formatExportMarkdown.js`**: 構造トレーナーの `formatResultsMarkdown.js` を下敷きに、§10のテンプレへ差し替え。
++ 
+- - **`api/claude.js`**: fetch の組み立て・エラーハンドリング・`[` prefill の付け方を踏襲。ただし**呼び出しは1回のみ**（§4）。
++ ---
+- - **`scripts/dump-prompts.mjs`**: `prompts/generate.js` を各STEPで評価し `prompt-dumps/generate/*.md` に書き出す。
++ 
+- - **`vite.config.js` / `deploy.yml`**: Pages 用 `base` をリポジトリ名に変更（§11）。
++ ## 3. 既存トレーナーから流用するパターン（mirror）
+- ---
++ - **`PartBreakdown.jsx`**: X/Y/Z/V を色付きチップで表示する既存コンポーネントをほぼそのまま移植。役割色はプロトタイプの `--rX/--rV/--rY/--rZ` に合わせる。
+- 
++ - **`utils/parts.js`**: `parts[]` をネスト整形するロジック（grading-prompt.md の `formatPartsForCheck` 相当）。MDエクスポートと画面表示の両方で使う。
+- ## 4. 既存トレーナーから意図的に変える点（DIVERGENCE・厳守）
++ - **`utils/formatExportMarkdown.js`**: 構造トレーナーの `formatResultsMarkdown.js` を下敷きに、§10のテンプレへ差し替え。
+- 
++ - **`api/claude.js`**: fetch の組み立て・エラーハンドリング・`[` prefill の付け方を踏襲。ただし**呼び出しは1回のみ**（§4）。
+- ここが構造トレーナーと**違う**。混同しないこと。
++ - **`scripts/dump-prompts.mjs`**: `prompts/generate.js` を各STEPで評価し `prompt-dumps/generate/*.md` に書き出す。
+- 
++ - **`vite.config.js` / `deploy.yml`**: Pages 用 `base` をリポジトリ名に変更（§11）。
+- | # | 構造トレーナー | 本アプリ（Question Trainer） |
++ 
+- |---|---|---|
++ ---
+- | D-1 | 生成と採点で**2種類のプロンプト・複数コール** | **生成1種類・1コールのみ**。問題＋模範解答＋根拠を**セット生成**。採点コールは持たない |
++ 
+- | D-2 | Claude が答え合わせ（採点）する | **v1はAI採点なし**。模範解答を表示し、MD出力 → デスクトップClaude Projectsで添削する運用 |
++ ## 4. 既存トレーナーから意図的に変える点（DIVERGENCE・厳守）
+- | D-3 | APIキーをクライアントで入力（`ApiKeyInput.jsx`） | **APIキーはGASで管理**。`ApiKeyInput.jsx` は作らない。`claude.js` は GAS プロキシURLを叩く |
++ 
+- | D-4 | 1セッション 7問・2問ずつ採点 | 1セッション **5問**・**完全ランダム**（総合モードは選択STEP集合から） |
++ ここが構造トレーナーと**違う**。混同しないこと。
+- | D-5 | declarative/interrogative トグル | なし。出題は常に疑問文。STEP軸で操作を切り替える |
++ 
+- | D-6 | Step 3〜7 | **STEP 1〜7**（疑問文専用の操作ベース。§6） |
++ | # | 構造トレーナー | 本アプリ（Question Trainer） |
+- 
++ |---|---|---|
+- > **D-1/D-2 が最重要**。「生成は1回・セット」を崩さないこと。模範解答を別コールにしない。
++ | D-1 | 生成と採点で**2種類のプロンプト・複数コール** | **生成1種類・1コールのみ**。問題＋模範解答＋根拠を**セット生成**。採点コールは持たない |
+- 
++ | D-2 | Claude が答え合わせ（採点）する | **v1はAI採点なし**。模範解答を表示し、MD出力 → デスクトップClaude Projectsで添削する運用 |
+- ---
++ | D-3 | APIキーをクライアントで入力（`ApiKeyInput.jsx`） | **APIキーはGASで管理**。`ApiKeyInput.jsx` は作らない。`claude.js` は GAS プロキシURLを叩く |
+- 
++ | D-4 | 1セッション 7問・2問ずつ採点 | 1セッション **5問**・**完全ランダム**（総合モードは選択STEP集合から） |
+- ## 5. 生成API（1コール）
++ | D-5 | declarative/interrogative トグル | なし。出題は常に疑問文。STEP軸で操作を切り替える |
+- 
++ | D-6 | Step 3〜7 | **STEP 1〜7**（疑問文専用の操作ベース。§6） |
+- ### 5-1. `gas/proxy.gs`（APIキー秘匿）
++ 
+- 
++ > **D-1/D-2 が最重要**。「生成は1回・セット」を崩さないこと。模範解答を別コールにしない。
+- Script Properties に `CLAUDE_API_KEY` を保存し、フロントからのPOSTをClaude APIへ中継する。
++ 
+- 
++ ---
+- ```javascript
++ 
+- function doPost(e) {
++ ## 5. 生成API（1コール）
+-   const body = JSON.parse(e.postData.contents);
++ 
+-   const res = UrlFetchApp.fetch('https://api.anthropic.com/v1/messages', {
++ ### 5-1. `gas/proxy.gs`（APIキー秘匿）
+-     method: 'post',
++ 
+-     contentType: 'application/json',
++ Script Properties に `CLAUDE_API_KEY` を保存し、フロントからのPOSTをClaude APIへ中継する。
+-     headers: {
++ 
+-       'x-api-key': PropertiesService.getScriptProperties().getProperty('CLAUDE_API_KEY'),
++ ```javascript
+-       'anthropic-version': '2023-06-01'
++ function doPost(e) {
+-     },
++   const body = JSON.parse(e.postData.contents);
+-     payload: JSON.stringify(body),
++   const res = UrlFetchApp.fetch('https://api.anthropic.com/v1/messages', {
+-     muteHttpExceptions: true
++     method: 'post',
+-   });
++     contentType: 'application/json',
+-   return ContentService.createTextOutput(res.getContentText())
++     headers: {
+-     .setMimeType(ContentService.MimeType.JSON);
++       'x-api-key': PropertiesService.getScriptProperties().getProperty('CLAUDE_API_KEY'),
+- }
++       'anthropic-version': '2023-06-01'
+- ```
++     },
+- 
++     payload: JSON.stringify(body),
+- - デプロイ: ウェブアプリ / 実行ユーザー=自分 / アクセス=全員（個人運用）。
++     muteHttpExceptions: true
+- - フロントは `VITE_GAS_PROXY_URL` を `.env` で受け取り、本番は GitHub Actions Secrets から注入。
++   });
+- 
++   return ContentService.createTextOutput(res.getContentText())
+- ### 5-2. `src/api/claude.js`
++     .setMimeType(ContentService.MimeType.JSON);
+- 
++ }
+- generateBatch({ steps, count = 5 }) -> Promise<Item[]>
++ 
+- ```
++ - デプロイ: ウェブアプリ / 実行ユーザー=自分 / アクセス=全員（個人運用）。
+- 
++ - フロントは `VITE_GAS_PROXY_URL` を `.env` で受け取り、本番は GitHub Actions Secrets から注入。
+- - `prompts/generate.js` で system/user を組み立て、`POST {VITE_GAS_PROXY_URL}` に以下を送る:
++ 
+-   ```jsonc
++ ### 5-2. `src/api/claude.js`
+-   {
++ 
+-     "model": "claude-sonnet-4-5",      // 既存トレーナーと同じ文字列に揃える（grading-prompt.md 準拠）
++ ```
+-     "max_tokens": 8192,
++ generateBatch({ steps, count = 5 }) -> Promise<Item[]>
+-     "system": "<shared.js の system 文>",
++ ```
+-     "messages": [
++ 
+-       { "role": "user", "content": "<generate.js の user 文>" },
++ - `prompts/generate.js` で system/user を組み立て、`POST {VITE_GAS_PROXY_URL}` に以下を送る:
+-       { "role": "assistant", "content": "[" }   // prefill
++   ```jsonc
+-     ]
++   {
+-   }
++     "model": "claude-sonnet-4-5",      // 既存トレーナーと同じ文字列に揃える（grading-prompt.md 準拠）
+-   ```
++     "max_tokens": 8192,
+- - レスポンスの `content[0].text` を `'[' +` で連結してJSONパース → `validateItems()`（§7）→ 5件に満たなければ不足分のみ**最大1回**再リクエスト。
++     "system": "<shared.js の system 文>",
+- 
++     "messages": [
+- ### 5-3. `src/prompts/shared.js`（system）
++       { "role": "user", "content": "<generate.js の user 文>" },
+- 
++       { "role": "assistant", "content": "[" }   // prefill
+- `question-trainer-requirements-design.md §7-2` の system 文を**そのまま**実装する。要点（省略不可）:
++     ]
+- - JSONのみ・`『』`で英文引用・`"` 禁止・末尾カンマ禁止・改行は `\n`
++   }
+- - 1文1疑問詞
++   ```
+- - 糸1の3機構（be / 既存助動詞 / do挿入）の使い分け、be・既存助動詞があるとき do を使わない
++ - レスポンスの `content[0].text` を `'[' +` で連結してJSONパース → `validateItems()`（§7）→ 5件に満たなければ不足分のみ**最大1回**再リクエスト。
+- - 主語wh は糸1を起動しない（時制は本動詞活用）
++ 
+- - 間接疑問は従属節の糸1解除（do消し平叙語順、疑問詞は節頭保持）
++ ### 5-3. `src/prompts/shared.js`（system）
+- - 複雑な関係詞修飾で飾らない
++ 
+- - 一意性: `targetGap` を1つに固定、when/where/why/how は `answerSense` も固定し日本語を一意に書く
++ `question-trainer-requirements-design.md §7-2` の system 文を**そのまま**実装する。要点（省略不可）:
+- 
++ - JSONのみ・`『』`で英文引用・`"` 禁止・末尾カンマ禁止・改行は `\n`
+- ### 5-4. `src/prompts/generate.js`（user）
++ - 1文1疑問詞
+- 
++ - 糸1の3機構（be / 既存助動詞 / do挿入）の使い分け、be・既存助動詞があるとき do を使わない
+- `§7-3` の user テンプレートを実装。`{{STEPS}}`・`{{STEP_DEFS}}`・`{{SCENE_POOL}}` を `constants/` から注入:
++ - 主語wh は糸1を起動しない（時制は本動詞活用）
+- - `STEP_DEFS`: 選択STEPの「観点・例・糸・targetGap候補」を `steps.js` から
++ - 間接疑問は従属節の糸1解除（do消し平叙語順、疑問詞は節頭保持）
+- - `SCENE_POOL`: `scenePool.js`（structure-map §9 の A/B/B'/C）から
++ - 複雑な関係詞修飾で飾らない
+- - 時制は `coreTenses.js`（現在/過去/be/未来/現在完了）から各問へ散らす指示
++ - 一意性: `targetGap` を1つに固定、when/where/why/how は `answerSense` も固定し日本語を一意に書く
+- - 返却JSONスキーマは §6 のItemと一致
++ 
+- 
++ ### 5-4. `src/prompts/generate.js`（user）
+- ---
++ 
+- 
++ `§7-3` の user テンプレートを実装。`{{STEPS}}`・`{{STEP_DEFS}}`・`{{SCENE_POOL}}` を `constants/` から注入:
+- ## 6. データモデル
++ - `STEP_DEFS`: 選択STEPの「観点・例・糸・targetGap候補」を `steps.js` から
+- 
++ - `SCENE_POOL`: `scenePool.js`（structure-map §9 の A/B/B'/C）から
+- ### 6-1. Item スキーマ（生成APIの返却要素）— `requirements-design §5-1` と同一
++ - 時制は `coreTenses.js`（現在/過去/be/未来/現在完了）から各問へ散らす指示
+- 
++ - 返却JSONスキーマは §6 のItemと一致
+- ```jsonc
++ 
+- {
++ ---
+-   "id":"q1","step":3,"sceneTag":"道聞き","functionTag":"情報を得る",
++ 
+-   "jp":"…","targetGap":"where","answerSense":null,
++ ## 6. データモデル
+-   "en":"…","nuance":"…","thread":"糸1+糸2","answerSentence":null,
++ 
+-   "parts":[{"role":"X|V|Y|Z","text":"…","note":"…"}]
++ ### 6-1. Item スキーマ（生成APIの返却要素）— `requirements-design §5-1` と同一
+- }
++ 
+- ```
++ ```jsonc
+- 
++ {
+- ### 6-2. `constants/steps.js`（structure-map §8-1 ミラー）
++   "id":"q1","step":3,"sceneTag":"道聞き","functionTag":"情報を得る",
+- 
++   "jp":"…","targetGap":"where","answerSense":null,
+- ```js
++   "en":"…","nuance":"…","thread":"糸1+糸2","answerSentence":null,
+- export const STEPS = {
++   "parts":[{"role":"X|V|Y|Z","text":"…","note":"…"}]
+-   1:{ name:"Yes/No 疑問文", desc:"糸1のみ・3機構を回す", thread:"糸1",
++ }
+-       gapCandidates:["yesno"] },
++ ```
+-   2:{ name:"wh・主語を聞く", desc:"糸2のみ・糸1なし", thread:"糸2",
++ 
+-       gapCandidates:["subject"] },
++ ### 6-2. `constants/steps.js`（structure-map §8-1 ミラー）
+-   3:{ name:"wh・主語以外を聞く", desc:"糸1 + 糸2", thread:"糸1+糸2",
++ 
+-       gapCandidates:["object","complement","when","where","why","how"] },
++ ```js
+-   4:{ name:"副詞wh ＋ 答え文", desc:"when/where/why/how + 答え", thread:"糸1+糸2",
++ export const STEPS = {
+-       gapCandidates:["when","where","why","how"], requireAnswerSentence:true },
++   1:{ name:"Yes/No 疑問文", desc:"糸1のみ・3機構を回す", thread:"糸1",
+-   5:{ name:"限定詞型・前置詞残留", desc:"Which book / Who…with?", thread:"糸1+糸2",
++       gapCandidates:["yesno"] },
+-       gapCandidates:["which+名詞","what+名詞","whose+名詞","前置詞残留"] },
++   2:{ name:"wh・主語を聞く", desc:"糸2のみ・糸1なし", thread:"糸2",
+-   6:{ name:"間接疑問", desc:"糸1解除・二重疑問構造", thread:"糸1解除",
++       gapCandidates:["subject"] },
+-       gapCandidates:["従属節gap","疑問詞+to不定詞"] },
++   3:{ name:"wh・主語以外を聞く", desc:"糸1 + 糸2", thread:"糸1+糸2",
+-   7:{ name:"選択・否定疑問", desc:"or B? / Don't you…?", thread:"糸1",
++       gapCandidates:["object","complement","when","where","why","how"] },
+-       gapCandidates:["alternative","negative"] },
++   4:{ name:"副詞wh ＋ 答え文", desc:"when/where/why/how + 答え", thread:"糸1+糸2",
+- };
++       gapCandidates:["when","where","why","how"], requireAnswerSentence:true },
+- export const ANSWER_SENSE = {
++   5:{ name:"限定詞型・前置詞残留", desc:"Which book / Who…with?", thread:"糸1+糸2",
+-   why:["cause","purpose"], how:["means","manner","state","degree"],
++       gapCandidates:["which+名詞","what+名詞","whose+名詞","前置詞残留"] },
+-   when:["point","clause"], where:["point","clause"],
++   6:{ name:"間接疑問", desc:"糸1解除・二重疑問構造", thread:"糸1解除",
+- };
++       gapCandidates:["従属節gap","疑問詞+to不定詞"] },
+- ```
++   7:{ name:"選択・否定疑問", desc:"or B? / Don't you…?", thread:"糸1",
+- 
++       gapCandidates:["alternative","negative"] },
+- ### 6-3. `constants/scenePool.js`（structure-map §9）
++ };
+- 
++ export const ANSWER_SENSE = {
+- A（生活者共通）/ B（ペルソナ）/ B'（ロジカルシンキング：語学学校・自己将来）/ C（機能軸）を配列で持つ。**MECE非保証・重複容認**のコメントを必ず残す。仮定法系（What would you do if…）は `layer:2` フラグで初版除外。
++   why:["cause","purpose"], how:["means","manner","state","degree"],
+- 
++   when:["point","clause"], where:["point","clause"],
+- ---
++ };
+- 
++ ```
+- ## 7. バリデーション — `src/utils/validateItems.js`（requirements-design §8）
++ 
+- 
++ ### 6-3. `constants/scenePool.js`（structure-map §9）
+- 各Itemに対し軽量な構文チェックを行い、違反は除外して再要求対象にする。
++ 
+- 
++ A（生活者共通）/ B（ペルソナ）/ B'（ロジカルシンキング：語学学校・自己将来）/ C（機能軸）を配列で持つ。**MECE非保証・重複容認**のコメントを必ず残す。仮定法系（What would you do if…）は `layer:2` フラグで初版除外。
+- ```
++ 
+- validateItems(items, selectedSteps) -> { valid:Item[], invalidCount:number }
++ ---
+- ```
++ 
+- 
++ ## 7. バリデーション — `src/utils/validateItems.js`（requirements-design §8）
+- | 検査 | 失敗条件（除外） |
++ 
+- |---|---|
++ 各Itemに対し軽量な構文チェックを行い、違反は除外して再要求対象にする。
+- | 疑問詞1つ | `en` のwh語が2つ以上（間接の従属節whは1つまで許容） |
++ 
+- | do挿入の排他 | `en` に do/does/did と be/既存助動詞の前置が共起 |
++ ```
+- | 主語whの糸1禁止 | `targetGap==="subject"` で先頭に do/be/助動詞前置がある |
++ validateItems(items, selectedSteps) -> { valid:Item[], invalidCount:number }
+- | 間接の糸1解除 | `step===6` で従属節が疑問詞直後に助動詞前置（平叙語順でない） |
++ ```
+- | 末尾? | `en` が `?` で終わらない（→整形 or 除外） |
++ 
+- | メタ必須 | `targetGap` 無し、または when/where/why/how で `answerSense` 無し |
++ | 検査 | 失敗条件（除外） |
+- | STEP整合 | `step` が `selectedSteps` に含まれない |
++ |---|---|
+- 
++ | 疑問詞1つ | `en` のwh語が2つ以上（間接の従属節whは1つまで許容） |
+- > 完全な構文解析は不要。正規表現＋語リストの軽量判定でよい。目的は「明白な型崩れの排除」。
++ | do挿入の排他 | `en` に do/does/did と be/既存助動詞の前置が共起 |
+- 
++ | 主語whの糸1禁止 | `targetGap==="subject"` で先頭に do/be/助動詞前置がある |
+- ---
++ | 間接の糸1解除 | `step===6` で従属節が疑問詞直後に助動詞前置（平叙語順でない） |
+- 
++ | 末尾? | `en` が `?` で終わらない（→整形 or 除外） |
+- ## 8. UI / 状態機械 — `src/App.jsx`
++ | メタ必須 | `targetGap` 無し、または when/where/why/how で `answerSense` 無し |
+- 
++ | STEP整合 | `step` が `selectedSteps` に含まれない |
+- `question-trainer-prototype.html` を**視覚的正本**としてReact化する。配色・余白・コンポーネント構成・織機モチーフ・糸タグ配色を再現すること。
++ 
+- 
++ > 完全な構文解析は不要。正規表現＋語リストの軽量判定でよい。目的は「明白な型崩れの排除」。
+- フェーズ状態機械（プロトタイプの `phase` 0–3 と同一）:
++ 
+- 
++ ---
+- ```
++ 
+- select → answer → review → export
++ ## 8. UI / 状態機械 — `src/App.jsx`
+-   │        │         │        │
++ 
+-   │        │         │        └ 「次の5問」→ generateBatch() → answer（=新規1コール）
++ `question-trainer-prototype.html` を**視覚的正本**としてReact化する。配色・余白・コンポーネント構成・織機モチーフ・糸タグ配色を再現すること。
+-   │        │         └ 「MDに書き出す」
++ 
+-   │        └ 「答え合わせ」（模範解答を開示）※API追加なし
++ フェーズ状態機械（プロトタイプの `phase` 0–3 と同一）:
+-   └ 「出題する(5問)」→ generateBatch()（1コール）
++ 
+- 
++ select → answer → review → export
+- - `mode`（step|combined）、`selectedSteps:Set`、`items:Item[]`、`attempts:{id:string}` を state で保持。
++   │        │         │        │
+- - 総合モードは選択STEP集合から**完全ランダム**でSTEPを割当て（プロトタイプの `generate()` と同じ）。
++   │        │         │        └ 「次の5問」→ generateBatch() → answer（=新規1コール）
+- - 出題フェーズでは模範解答を**描画しない**（DOMに出さない）。開示は review フェーズで。
++   │        │         └ 「MDに書き出す」
+- - localStorage 等の永続化は使わない（v1ステートレス）。
++   │        └ 「答え合わせ」（模範解答を開示）※API追加なし
+- 
++   └ 「出題する(5問)」→ generateBatch()（1コール）
+- ---
++ ```
+- ## 9. MDエクスポート — `src/utils/formatExportMarkdown.js`（requirements-design §10）
++ - `mode`（step|combined）、`selectedSteps:Set`、`items:Item[]`、`attempts:{id:string}` を state で保持。
+- 
++ - 総合モードは選択STEP集合から**完全ランダム**でSTEPを割当て（プロトタイプの `generate()` と同じ）。
+- ファイル名 `question-trainer_{mode}_{steps}_{yyyymmdd-hhmm}.md`。テンプレは §10 のとおり。`nuance` の `『』` は保持、HTMLタグ（`<b>` 等）が混ざる場合は除去。各問に `STEP / sceneTag / functionTag / targetGap / answerSense / 自分の回答 / 模範解答 / 答え文 / nuance / 構造分解 / 糸` を含める（欠落させない）。
++ - 出題フェーズでは模範解答を**描画しない**（DOMに出さない）。開示は review フェーズで。
+- 
++ - localStorage 等の永続化は使わない（v1ステートレス）。
+- ---
++ 
+- 
++ ---
+- ## 10. ビルド / デプロイ
++ 
+- 
++ ## 9. MDエクスポート — `src/utils/formatExportMarkdown.js`（requirements-design §10）
+- - `vite.config.js`: `base: '/English-Question-Trainer/'`
++ 
+- - `.github/workflows/deploy.yml`: 構造トレーナーのものを流用し、`VITE_GAS_PROXY_URL` を Secrets から build 時に注入。
++ ファイル名 `question-trainer_{mode}_{steps}_{yyyymmdd-hhmm}.md`。テンプレは §10 のとおり。`nuance` の `『』` は保持、HTMLタグ（`<b>` 等）が混ざる場合は除去。各問に `STEP / sceneTag / functionTag / targetGap / answerSense / 自分の回答 / 模範解答 / 答え文 / nuance / 構造分解 / 糸` を含める（欠落させない）。
+- - `package.json`: React/Vite の依存を踏襲。新規依存は増やさない方針（必要なら理由を添えて提案）。
++ 
+- 
++ ---
+- ---
++ 
+- 
++ ## 10. ビルド / デプロイ
+- ## 11. prompt-dumps / scripts
++ 
+- 
++ - `vite.config.js`: `base: '/English-Question-Trainer/'`
+- - `scripts/dump-prompts.mjs`: STEP 1〜7 それぞれで `buildGeneratePrompt({steps:[n]})` を評価し `prompt-dumps/generate/stepN.md` に system+user を書き出す。総合例も `combined.md` に。added_fm question-trainer-requirements-design.md -> pj-2026-06-28-3e8b
+
++ - `.github/workflows/deploy.yml`: 構造トレーナーのものを流用し、`VITE_GAS_PROXY_URL` を Secrets から build 時に注入。
+- - 目的: プロンプトをGit管理し、デスクトップClaudeでの手動検証・レビューに使えるようにする（構造トレーナーと同じ運用）。
++ - `package.json`: React/Vite の依存を踏襲。新規依存は増やさない方針（必要なら理由を添えて提案）。
+- ## 12. 受け入れ条件（Acceptance Criteria）
++ ## 11. prompt-dumps / scripts
+- - [ ] STEP個別／総合（選択STEP集合から完全ランダム）で**5問**出題できる
++ - `scripts/dump-prompts.mjs`: STEP 1〜7 それぞれで `buildGeneratePrompt({steps:[n]})` を評価し `prompt-dumps/generate/stepN.md` に system+user を書き出す。総合例も `combined.md` に。
+- - [ ] 1セッションのClaude呼び出しが**1回**（生成のみ。採点コールがない）
++ - 目的: プロンプトをGit管理し、デスクトップClaudeでの手動検証・レビューに使えるようにする（構造トレーナーと同じ運用）。
+- - [ ] 問題と模範解答が**同一レスポンス**で返る（セット生成）
++ 
+- - [ ] 出題フェーズで模範解答がDOMに存在しない／reviewで開示される
++ ---
+- - [ ] 全Itemが §7 バリデーションを通過（違反は除外・最大1回再要求）
++ 
+- - [ ] 各Itemに `targetGap`、when/where/why/how には `answerSense` が入る
++ ## 12. 受け入れ条件（Acceptance Criteria）
+- - [ ] STEP4で `answerSentence`（模範の答え文）が表示・MD出力される
++ 
+- - [ ] MDが §9 テンプレで出力され、メタデータが欠落しない
++ - [ ] STEP個別／総合（選択STEP集合から完全ランダム）で**5問**出題できる
+- - [ ] APIキーがフロント／ビルド成果物に露出しない（GAS Script Properties 管理）
++ - [ ] 1セッションのClaude呼び出しが**1回**（生成のみ。採点コールがない）
+- - [ ] UIがプロトタイプHTMLを再現（配色・糸タグ・織機モチーフ・4フェーズ）
++ - [ ] 問題と模範解答が**同一レスポンス**で返る（セット生成）
+- - [ ] GitHub Pages（base path）で動作
++ - [ ] 出題フェーズで模範解答がDOMに存在しない／reviewで開示される
+- 
++ - [ ] 全Itemが §7 バリデーションを通過（違反は除外・最大1回再要求）
+- ---
++ - [ ] 各Itemに `targetGap`、when/where/why/how には `answerSense` が入る
+- 
++ - [ ] STEP4で `answerSentence`（模範の答え文）が表示・MD出力される
+- ## 13. 推奨実装順序（PR分割）
++ - [ ] MDが §9 テンプレで出力され、メタデータが欠落しない
+- 
++ - [ ] APIキーがフロント／ビルド成果物に露出しない（GAS Script Properties 管理）
+- 1. **PR1 雛形**: Vite+React 雛形、`vite.config`/`deploy.yml`/`index.html`、設計ドキュメントをルート配置。
++ - [ ] UIがプロトタイプHTMLを再現（配色・糸タグ・織機モチーフ・4フェーズ）
+- 2. **PR2 定数**: `steps.js` / `scenePool.js` / `roles.js` / `coreTenses.js`。
++ - [ ] GitHub Pages（base path）で動作
+- 3. **PR3 プロンプト**: `shared.js` / `generate.js` / `dump-prompts.mjs` ＋ `prompt-dumps/` 生成。
++ 
+- 4. **PR4 API**: `gas/proxy.gs` ＋ `api/claude.js`（モックfallback付き）＋ `validateItems.js`。
++ ---
+- 5. **PR5 UI**: プロトタイプのReact化（select→answer→review→export）。
++ 
+- 6. **PR6 エクスポート**: `formatExportMarkdown.js` ＋ `ExportPanel`。
++ ## 13. 推奨実装順序（PR分割）
+- 7. **PR7 結合**: 実APIで5問→答え合わせ→MDの一気通貫、受け入れ条件チェック。
++ 
+- 
++ 1. **PR1 雛形**: Vite+React 雛形、`vite.config`/`deploy.yml`/`index.html`、設計ドキュメントをルート配置。
+- ---
++ 2. **PR2 定数**: `steps.js` / `scenePool.js` / `roles.js` / `coreTenses.js`。
+- 
++ 3. **PR3 プロンプト**: `shared.js` / `generate.js` / `dump-prompts.mjs` ＋ `prompt-dumps/` 生成。
+- ## 14. ドリフト防止チェックリスト（PRごとに確認）
++ 4. **PR4 API**: `gas/proxy.gs` ＋ `api/claude.js`（モックfallback付き）＋ `validateItems.js`。
+- 
++ 5. **PR5 UI**: プロトタイプのReact化（select→answer→review→export）。
+- - [ ] 関数名・定数名・スキーマを本書/正本から改名していない
++ 6. **PR6 エクスポート**: `formatExportMarkdown.js` ＋ `ExportPanel`。
+- - [ ] 生成は1コール・セット生成のまま（採点コールを足していない）
++ 7. **PR7 結合**: 実APIで5問→答え合わせ→MDの一気通貫、受け入れ条件チェック。
+- - [ ] system/user プロンプトを要約・省略していない
++ 
+- - [ ] バリデーション条件を緩めていない
++ ---
+- - [ ] 既存トレーナーの流用部は**実コードを確認**してから移植した
++ 
+- - [ ] APIキーがどこにも平文で入っていない
++ ## 14. ドリフト防止チェックリスト（PRごとに確認）
++ 
++ - [ ] 関数名・定数名・スキーマを本書/正本から改名していない
++ - [ ] 生成は1コール・セット生成のまま（採点コールを足していない）
++ - [ ] system/user プロンプトを要約・省略していない
++ - [ ] バリデーション条件を緩めていない
++ - [ ] 既存トレーナーの流用部は**実コードを確認**してから移植した
++ - [ ] APIキーがどこにも平文で入っていない
+--- question-trainer-requirements-design.md
++++ question-trainer-requirements-design.md (added_fm pj-2026-06-28-3e8b)
+
+- # 疑問文トレーナー — 要件定義 & 設計書
++ ---
+- 
++ id: pj-2026-06-28-3e8b
+- > **位置づけ**：実装（Cursor）の前提を固める文書。「何を作るか・どう作るか」を定義する。
++ aliases:
+- > **関連ドキュメント（正本セット）**：
++ - pj-2026-06-28-3e8b
+- > - 設計の根拠（なぜその分岐があるか）→ `question-trainer-structure-map.md`
++ title: 疑問文トレーナー — 要件定義 & 設計書
+- > - 生成ロジックの分岐図 → `question-trainer-decision-tree.svg`
++ created: '2026-06-28'
+- > - **UIの視覚的正本**（画面構成・配色・部品分割）→ `question-trainer-prototype.html`
++ ---
+- > - 実装の引き渡し指示（既存トレーナー規約に合わせた差分）→ `question-trainer-cursor-work-request.md`
++ # 疑問文トレーナー — 要件定義 & 設計書
+- >
++ 
+- > 本書はこれらを実装可能な仕様に束ねる上位文書。迷ったら本書 → 各正本の順に参照する。
++ > **位置づけ**：実装（Cursor）の前提を固める文書。「何を作るか・どう作るか」を定義する。
+- > **初版スコープ**：出題 → 自力翻訳 → 模範解答＋根拠の表示 → MDエクスポート。**AIによる添削はv1では行わない**（MDをデスクトップClaude Projectsへ渡して添削を得る運用）。
++ > **関連ドキュメント（正本セット）**：
+- 
++ > - 設計の根拠（なぜその分岐があるか）→ `question-trainer-structure-map.md`
+- ---
++ > - 生成ロジックの分岐図 → `question-trainer-decision-tree.svg`
+- 
++ > - **UIの視覚的正本**（画面構成・配色・部品分割）→ `question-trainer-prototype.html`
+- ## 1. 目的とゴール
++ > - 実装の引き渡し指示（既存トレーナー規約に合わせた差分）→ `question-trainer-cursor-work-request.md`
+- 
++ >
+- - フィリピン留学中の実用に向け、**疑問文＋時制を瞬発的に産出するスキル**を鍛える。
++ > 本書はこれらを実装可能な仕様に束ねる上位文書。迷ったら本書 → 各正本の順に参照する。
+- - 構造トレーナーと**同じフォーマット**（日本語提示→英訳入力→フィードバック）を踏襲しつつ、対象を疑問文に特化。
++ > **初版スコープ**：出題 → 自力翻訳 → 模範解答＋根拠の表示 → MDエクスポート。**AIによる添削はv1では行わない**（MDをデスクトップClaude Projectsへ渡して添削を得る運用）。
+- - **軽量トークン運用**を最優先（後述の通り1セッション＝1 APIコール）。
++ 
+- - GitHub Pages で個人運用。
++ ---
+- 非ゴール（v1スコープ外、将来）：瞬発ループ（速度計測・タイマー）、AI添削、音声・IPA。
++ ## 1. 目的とゴール
+- ---
++ - フィリピン留学中の実用に向け、**疑問文＋時制を瞬発的に産出するスキル**を鍛える。
+- 
++ - 構造トレーナーと**同じフォーマット**（日本語提示→英訳入力→フィードバック）を踏襲しつつ、対象を疑問文に特化。
+- ## 2. 機能要件（FR）
++ - **軽量トークン運用**を最優先（後述の通り1セッション＝1 APIコール）。
+- 
++ - GitHub Pages で個人運用。
+- | ID | 要件 | 詳細 |
++ 
+- |---|---|---|
++ 非ゴール（v1スコープ外、将来）：瞬発ループ（速度計測・タイマー）、AI添削、音声・IPA。
+- | FR-1 | STEP選択出題 | 操作ベース7 STEP（structure-map §8-1）から1つ選んで出題 |
++ 
+- | FR-2 | 総合モード | **指定したSTEP集合からランダム出題**（複数STEP選択→その集合内で各問ランダム）。弱点強化用。全STEPの無条件ランダムではない |
++ ---
+- | FR-3 | 5問一括出題 | 1セッション＝**5問**。日本語のみを一括提示（模範解答は隠す） |
++ 
+- | FR-4 | 解答入力 | 各問にテキスト入力欄。未入力でも答え合わせ可 |
++ ## 2. 機能要件（FR）
+- | FR-5 | 答え合わせ | 「答え合わせ」操作で**5問の模範解答を一括表示**。自分の解答と並置。表示は最小限（§6-3） |
++ 
+- | FR-6 | 答え文（質問文＋回答文） | 各問に 自分の回答／模範解答（質問文）／模範解答（回答文）を表示。内部メタ（狙い・構造分解・操作）は**画面に出さず**MD出力に回す |
++ | ID | 要件 | 詳細 |
+- | FR-7 | MD出力（1問ずつ・貼付プロンプト形式） | **問題ごとに**MDを出力（コピー）。MDは**そのままProjectsに貼るだけで添削が走る指示文**を内包（§10）。①自分の回答の添削 ②模範解答が正しい理由 ③その他の表現、をClaudeに解説させる |
++ |---|---|---|
+- | FR-8 | シーン文脈 | 出題日本語にシーン（structure-map §9）の文脈を薄く着せる。話題は固定せずランダムサンプリング |
++ | FR-1 | STEP選択出題 | 操作ベース7 STEP（structure-map §8-1）から1つ選んで出題 |
+- | FR-9 | 答え文（該当STEP） | STEP4の when/where/why/how は模範解答に「答え文」も併記（`answerSense`固定） |
++ | FR-2 | 総合モード | **指定したSTEP集合からランダム出題**（複数STEP選択→その集合内で各問ランダム）。弱点強化用。全STEPの無条件ランダムではない |
+- 
++ | FR-3 | 5問一括出題 | 1セッション＝**5問**。日本語のみを一括提示（模範解答は隠す） |
+- **v1で実装しないこと（明示）**：AI添削（FR外）／スコアリング／履歴のサーバー保存／タイマー・速度ログ。
++ | FR-4 | 解答入力 | 各問にテキスト入力欄。未入力でも答え合わせ可 |
+- 
++ | FR-5 | 答え合わせ | 「答え合わせ」操作で**5問の模範解答を一括表示**。自分の解答と並置。表示は最小限（§6-3） |
+- ---
++ | FR-6 | 答え文（質問文＋回答文） | 各問に 自分の回答／模範解答（質問文）／模範解答（回答文）を表示。内部メタ（狙い・構造分解・操作）は**画面に出さず**MD出力に回す |
+- 
++ | FR-7 | MD出力（1問ずつ・貼付プロンプト形式） | **問題ごとに**MDを出力（コピー）。MDは**そのままProjectsに貼るだけで添削が走る指示文**を内包（§10）。①自分の回答の添削 ②模範解答が正しい理由 ③その他の表現、をClaudeに解説させる |
+- ## 3. 非機能要件（NFR）
++ | FR-8 | シーン文脈 | 出題日本語にシーン（structure-map §9）の文脈を薄く着せる。話題は固定せずランダムサンプリング |
+- 
++ | FR-9 | 答え文（該当STEP） | STEP4の when/where/why/how は模範解答に「答え文」も併記（`answerSense`固定） |
+- | ID | 要件 | 方針 |
++ 
+- |---|---|---|
++ **v1で実装しないこと（明示）**：AI添削（FR外）／スコアリング／履歴のサーバー保存／タイマー・速度ログ。
+- | NFR-1 | トークン効率 | **1セッション=1 APIコール**。5問の「日本語＋メタ＋模範解答＋根拠」を1リクエストで一括生成（§7）。添削の別コールを持たない |
++ 
+- | NFR-2 | モデル | `claude-sonnet-4-5`（既存トレーナーと同系・同文字列に合わせる。grading-prompt.md 準拠）。**問題作成と模範解答を同一コールで生成** |
++ ---
+- | NFR-3 | 静的ホスティング | GitHub Pages（SPA）。ビルドは React |
++ 
+- | NFR-4 | APIキー秘匿 | フロントに鍵を置かない。**Google Apps Script を薄いプロキシ**として既存スタックと同様に経由（v1はSheets不要・ステートレス可） |
++ ## 3. 非機能要件（NFR）
+- | NFR-5 | レスポンス安定化 | JSONのみ返却＋assistantで `[` をprefill（grading-prompt.md と同方式） |
++ 
+- | NFR-6 | 不変条件の保証 | ハードな文法不変条件は**プロンプト依存にせずコードで後検証**（§8）。違反問はクライアントで除外/再要求 |
++ | ID | 要件 | 方針 |
+- | NFR-7 | オフライン | 不要（v1）。生成は都度オンライン |
++ |---|---|---|
+- 
++ | NFR-1 | トークン効率 | **1セッション=1 APIコール**。5問の「日本語＋メタ＋模範解答＋根拠」を1リクエストで一括生成（§7）。添削の別コールを持たない |
+- ---
++ | NFR-2 | モデル | `claude-sonnet-4-5`（既存トレーナーと同系・同文字列に合わせる。grading-prompt.md 準拠）。**問題作成と模範解答を同一コールで生成** |
+- 
++ | NFR-3 | 静的ホスティング | GitHub Pages（SPA）。ビルドは React |
+- ## 4. システム構成
++ | NFR-4 | APIキー秘匿 | フロントに鍵を置かない。**Google Apps Script を薄いプロキシ**として既存スタックと同様に経由（v1はSheets不要・ステートレス可） |
+- 
++ | NFR-5 | レスポンス安定化 | JSONのみ返却＋assistantで `[` をprefill（grading-prompt.md と同方式） |
+- ```
++ | NFR-6 | 不変条件の保証 | ハードな文法不変条件は**プロンプト依存にせずコードで後検証**（§8）。違反問はクライアントで除外/再要求 |
+- [React SPA / GitHub Pages]
++ | NFR-7 | オフライン | 不要（v1）。生成は都度オンライン |
+-    │  (1) セッション開始：STEP集合・問数=5・シーンプール送信
++ 
+-    ▼
++ ---
+- [GAS プロキシ]  ── APIキー付与 ──▶ [Claude API  claude-sonnet-4-5]
++ 
+-    ▲                                        │ 1コールで5問ぶん
++ ## 4. システム構成
+-    │  (2) JSON配列（5 items：jp/meta/en/nuance/parts/thread）
++ 
+-    ▼
++ ```
+- [React 状態管理]
++ [React SPA / GitHub Pages]
+-    ├─ 出題フェーズ：item.jp のみ表示
++    │  (1) セッション開始：STEP集合・問数=5・シーンプール送信
+-    ├─ 答え合わせフェーズ：item.en + 根拠を開示
++    ▼
+-    └─ エクスポート：MD生成（ローカルDLのみ）
++ [GAS プロキシ]  ── APIキー付与 ──▶ [Claude API  claude-sonnet-4-5]
+- ```
++    ▲                                        │ 1コールで5問ぶん
+- 
++    │  (2) JSON配列（5 items：jp/meta/en/nuance/parts/thread）
+- - **バックエンドの状態は持たない**（v1）。生成結果はクライアントのメモリ内のみ。リロードで破棄でよい。
++    ▼
+- - 将来、履歴・SRSを足す場合に Sheets を追加する余地を残す（v1では使わない）。
++ [React 状態管理]
+- 
++    ├─ 出題フェーズ：item.jp のみ表示
+- ---
++    ├─ 答え合わせフェーズ：item.en + 根拠を開示
+- 
++    └─ エクスポート：MD生成（ローカルDLのみ）
+- ## 5. データモデル
++ ```
+- ### 5-1. 出題アイテム（生成APIの返却要素）
++ - **バックエンドの状態は持たない**（v1）。生成結果はクライアントのメモリ内のみ。リロードで破棄でよい。
+- 
++ - 将来、履歴・SRSを足す場合に Sheets を追加する余地を残す（v1では使わない）。
+- ```jsonc
++ 
+- {
++ ---
+-   "id": "q1",                     // セッション内連番
++ 
+-   "step": 3,                      // 1..7（structure-map §8-1）
++ ## 5. データモデル
+-   "sceneTag": "道聞き",            // シーンプール由来（彩り・MECE非保証）
++ 
+-   "functionTag": "情報を得る",      // 機能軸（任意）
++ ### 5-1. 出題アイテム（生成APIの返却要素）
+-   "jp": "あなたは昨日どこでそのカバンを買いましたか？",  // 出題文（一意性担保）
++ 
+-   "targetGap": "where",           // 聞くスロット固定（必須）
++ ```jsonc
+-   "answerSense": null,            // when/where/why/how のみ：point|clause|cause|purpose|means|manner|state|degree
++ {
+-   "en": "Where did you buy the bag yesterday?",   // 模範解答（100点）
++   "id": "q1",                     // セッション内連番
+-   "nuance": "did挿入後の本動詞は原形。yesterday は文末。",  // 模範のポイント
++   "step": 3,                      // 1..7（structure-map §8-1）
+-   "thread": "糸1+糸2",             // 糸1 / 糸2 / 糸1+糸2
++   "sceneTag": "道聞き",            // シーンプール由来（彩り・MECE非保証）
+-   "answerSentence": null,         // STEP4等で答え文を併記する場合のみ（例 "I bought it at the mall."）
++   "functionTag": "情報を得る",      // 機能軸（任意）
+-   "parts": [                      // 構造分解（grading-prompt.md と同じ X/Y/Z/V）
++   "jp": "あなたは昨日どこでそのカバンを買いましたか？",  // 出題文（一意性担保）
+-     { "role": "Z", "text": "Where", "note": "場所を問うwh" },
++   "targetGap": "where",           // 聞くスロット固定（必須）
+-     { "role": "V", "text": "did buy", "note": "do挿入・原形" },
++   "answerSense": null,            // when/where/why/how のみ：point|clause|cause|purpose|means|manner|state|degree
+-     { "role": "X", "text": "you", "note": "主語" },
++   "en": "Where did you buy the bag yesterday?",   // 模範解答（100点）
+-     { "role": "X", "text": "the bag", "note": "目的語" },
++   "nuance": "did挿入後の本動詞は原形。yesterday は文末。",  // 模範のポイント
+-     { "role": "Z", "text": "yesterday", "note": "時の副詞" }
++   "thread": "糸1+糸2",             // 糸1 / 糸2 / 糸1+糸2
+-   ]
++   "answerSentence": null,         // STEP4等で答え文を併記する場合のみ（例 "I bought it at the mall."）
+- }
++   "parts": [                      // 構造分解（grading-prompt.md と同じ X/Y/Z/V）
+- ```
++     { "role": "Z", "text": "Where", "note": "場所を問うwh" },
+- 
++     { "role": "V", "text": "did buy", "note": "do挿入・原形" },
+- 役割コード（X 名詞役 / V 動詞 / Y 形容詞役 / Z 副詞役）は grading-prompt.md の定義と一致させる。
++     { "role": "X", "text": "you", "note": "主語" },
+- 
++     { "role": "X", "text": "the bag", "note": "目的語" },
+- ### 5-2. セッション状態（クライアント）
++     { "role": "Z", "text": "yesterday", "note": "時の副詞" }
+- 
++   ]
+- ```jsonc
++ }
+- {
++ ```
+-   "mode": "step" | "combined",
++ 
+-   "selectedSteps": [3,4,6],       // combined は集合、step は単一
++ 役割コード（X 名詞役 / V 動詞 / Y 形容詞役 / Z 副詞役）は grading-prompt.md の定義と一致させる。
+-   "phase": "answering" | "review",
++ 
+-   "items": [ /* 5 × 出題アイテム */ ],
++ ### 5-2. セッション状態（クライアント）
+-   "attempts": { "q1": "Where did you bought...", ... }
++ 
+- }
++ ```jsonc
+- ```
++ {
+- 
++   "mode": "step" | "combined",
+- ---
++   "selectedSteps": [3,4,6],       // combined は集合、step は単一
+- 
++   "phase": "answering" | "review",
+- ### 5-3. 表示用語の方針（内部コード ↔ 平易表記）★①
++   "items": [ /* 5 × 出題アイテム */ ],
+- 
++   "attempts": { "q1": "Where did you bought...", ... }
+- **サイト表示・MD出力では、独自用語「糸／糸1／糸2」「X/Y/Z/V」を一切使わない**（一般に馴染みがなく初見ユーザーに伝わらないため）。データ内部のコードは保持しつつ、ユーザーに見せる箇所は下表の**平易表記に変換**する。冗長でも、初見で意味が分かる説明にする。
++ }
+- 
++ ```
+- | 内部コード | 平易表記（表示・MD用） |
++ 
+- |---|---|
++ ---
+- | thread `糸1` | 助動詞を主語の前に出す |
++ 
+- | thread `糸2` | 疑問詞を文頭に動かす |
++ ### 5-3. 表示用語の方針（内部コード ↔ 平易表記）★①
+- | thread `糸1+糸2` | 助動詞を前に出し、疑問詞を文頭に動かす |
++ 
+- | thread `糸1解除` | 助動詞は前に出さない（ふつうの語順のまま） |
++ **サイト表示・MD出力では、独自用語「糸／糸1／糸2」「X/Y/Z/V」を一切使わない**（一般に馴染みがなく初見ユーザーに伝わらないため）。データ内部のコードは保持しつつ、ユーザーに見せる箇所は下表の**平易表記に変換**する。冗長でも、初見で意味が分かる説明にする。
+- | role `X` | 名詞のはたらき（主語・目的語など）｜短縮: 名詞 |
++ 
+- | role `V` | 動詞 |
++ | 内部コード | 平易表記（表示・MD用） |
+- | role `Y` | 名詞を説明する語句（形容詞・関係詞節など）｜短縮: 名詞修飾 |
++ |---|---|
+- | role `Z` | 時・場所・理由などを表す語句（副詞・副詞節など）｜短縮: 副詞 |
++ | thread `糸1` | 助動詞を主語の前に出す |
+- 
++ | thread `糸2` | 疑問詞を文頭に動かす |
+- - 生成プロンプトが返す `nuance` と `parts[].note` も**平易な日本語**で書かせる（§7で「糸/XYZ という語を使わない」と明示）。
++ | thread `糸1+糸2` | 助動詞を前に出し、疑問詞を文頭に動かす |
+- - `thread`・`role` のコード値はJSONに残してよい（将来用）。**表示・MDへ出すときに必ず変換**する。
++ | thread `糸1解除` | 助動詞は前に出さない（ふつうの語順のまま） |
+- 
++ | role `X` | 名詞のはたらき（主語・目的語など）｜短縮: 名詞 |
+- ---
++ | role `V` | 動詞 |
+- 
++ | role `Y` | 名詞を説明する語句（形容詞・関係詞節など）｜短縮: 名詞修飾 |
+- ## 6. 画面・UXフロー
++ | role `Z` | 時・場所・理由などを表す語句（副詞・副詞節など）｜短縮: 副詞 |
+- 構造トレーナーと同じ操作感。**3フェーズ**（select → answer → review）。一括エクスポート画面は廃止し、MD出力は答え合わせ画面で**問題ごと**に行う。表示用語は §5-3 の平易表記に従う（糸/XYZ を出さない）。
++ - 生成プロンプトが返す `nuance` と `parts[].note` も**平易な日本語**で書かせる（§7で「糸/XYZ という語を使わない」と明示）。
+- 
++ - `thread`・`role` のコード値はJSONに残してよい（将来用）。**表示・MDへ出すときに必ず変換**する。
+- 1. **STEP選択**
++ 
+-    - STEP個別（1つ選択）／総合（複数選択＝指定STEP集合）をトグル。
++ ---
+-    - 各STEPに一行説明（平易表記。糸/XYZ を使わない）。STEPカードの「糸タグ」は廃止。
++ 
+- 2. **出題（answering）**
++ ## 6. 画面・UXフロー
+-    - 5問の日本語を一括表示。各問に入力欄。模範解答は非表示。
++ 
+-    - 「答え合わせ」ボタン（未入力があっても押下可、確認なし）。
++ 構造トレーナーと同じ操作感。**3フェーズ**（select → answer → review）。一括エクスポート画面は廃止し、MD出力は答え合わせ画面で**問題ごと**に行う。表示用語は §5-3 の平易表記に従う（糸/XYZ を出さない）。
+- 3. **答え合わせ（review）** — §6-3 の最小要素のみ
++ 
+-    - 「次の5問」で再生成（新しいAPIコール）。
++ 1. **STEP選択**
+- 
++    - STEP個別（1つ選択）／総合（複数選択＝指定STEP集合）をトグル。
+- ### 6-3. 答え合わせカードの表示要素（③・これで十分）
++    - 各STEPに一行説明（平易表記。糸/XYZ を使わない）。STEPカードの「糸タグ」は廃止。
+- 
++ 2. **出題（answering）**
+- 各問カードに出すのは次のみ。**赤枠で示された内部メタ（狙い・answerSense・操作・構造分解・ポイント）は画面に出さない**（MD出力に内包する）。
++    - 5問の日本語を一括表示。各問に入力欄。模範解答は非表示。
+- 
++    - 「答え合わせ」ボタン（未入力があっても押下可、確認なし）。
+- - ヘッダ：問番号 / STEP名（平易）/ シーン
++ 3. **答え合わせ（review）** — §6-3 の最小要素のみ
+- - 出題（日本語）
++    - 「次の5問」で再生成（新しいAPIコール）。
+- - **自分の回答**
++ 
+- - **模範解答（質問文）**
++ ### 6-3. 答え合わせカードの表示要素（③・これで十分）
+- - **模範解答（回答文）** — 答え文ありSTEPのみ（無ければ非表示）
++ 
+- - **MD出力ボタン**（この1問ぶんを出力／コピー）
++ 各問カードに出すのは次のみ。**赤枠で示された内部メタ（狙い・answerSense・操作・構造分解・ポイント）は画面に出さない**（MD出力に内包する）。
+- UX文言は学習者表現で（「答え合わせ」「次の5問」「この問題をMDで出力」）。
++ - ヘッダ：問番号 / STEP名（平易）/ シーン
+- 
++ - 出題（日本語）
+- ---
++ - **自分の回答**
+- 
++ - **模範解答（質問文）**
+- ## 7. 生成API仕様（1コール）
++ - **模範解答（回答文）** — 答え文ありSTEPのみ（無ければ非表示）
+- 
++ - **MD出力ボタン**（この1問ぶんを出力／コピー）
+- **問題作成と模範解答を1リクエストで生成する。** 添削用の別コールは持たない。
++ 
+- 品質・トークンの両面で最適なので、**問題（日本語＋メタ）と模範解答＋根拠は同一レスポンス内でセット生成する**（生成を分割しない／同じコンテキストで作るため問題と模範解答が必ず整合する）。「出題時は日本語のみ表示・答え合わせ時に模範解答を開示」は生成後の**表示制御**であって、生成を2回に分けるものではない。
++ UX文言は学習者表現で（「答え合わせ」「次の5問」「この問題をMDで出力」）。
+- ### 7-1. 呼び出しパラメータ
++ ---
+- | 項目 | 値 |
++ ## 7. 生成API仕様（1コール）
+- |---|---|
++ 
+- | model | `claude-sonnet-4-5` |
++ **問題作成と模範解答を1リクエストで生成する。** 添削用の別コールは持たない。
+- | max_tokens | `8192` |
++ 品質・トークンの両面で最適なので、**問題（日本語＋メタ）と模範解答＋根拠は同一レスポンス内でセット生成する**（生成を分割しない／同じコンテキストで作るため問題と模範解答が必ず整合する）。「出題時は日本語のみ表示・答え合わせ時に模範解答を開示」は生成後の**表示制御**であって、生成を2回に分けるものではない。
+- | 1コールの生成数 | **5問** |
++ 
+- | prefill | assistant メッセージで `[`（JSON配列の先頭固定） |
++ ### 7-1. 呼び出しパラメータ
+- ### 7-2. System プロンプト（要旨）
++ | 項目 | 値 |
+- 
++ |---|---|
+- ```
++ | model | `claude-sonnet-4-5` |
+- あなたは英語教育の専門家であり、疑問文産出ドリルの作問者です。
++ | max_tokens | `8192` |
+- 学習者は日本語を読んで瞬発的に英語の疑問文を作る訓練をしています。
++ | 1コールの生成数 | **5問** |
+- 指定された STEP（操作）とシーンに沿って、出題用の日本語文と、その模範解答・根拠を生成してください。
++ | prefill | assistant メッセージで `[`（JSON配列の先頭固定） |
+- 必ず有効なJSONのみを返してください。マークダウンや説明文は一切含めないでください。
++ 
+- 
++ ### 7-2. System プロンプト（要旨）
+- JSONの厳守ルール（grading-prompt.md と同一）:
++ 
+- - 文字列値はダブルクォートのみ使用（シングルクォート不可）
++ ```
+- - nuance/note 内で英文・英単語を引用するときは『』を使い、ダブルクォート(")は使わない
++ あなたは英語教育の専門家であり、疑問文産出ドリルの作問者です。
+- - 末尾カンマ禁止 / 生の改行禁止（必要なら \n）
++ 学習者は日本語を読んで瞬発的に英語の疑問文を作る訓練をしています。
+- 
++ 指定された STEP（操作）とシーンに沿って、出題用の日本語文と、その模範解答・根拠を生成してください。
+- 作問の絶対ルール（取りこぼし厳禁）:
++ 必ず有効なJSONのみを返してください。マークダウンや説明文は一切含めないでください。
+- - 1文につき疑問詞は1つ（2つ同時に問わない）
++ 
+- - 糸1（助動詞前置）は3機構を正しく使い分ける：本動詞が be→be前出 / 既存助動詞→それを前出 / 一般動詞で助動詞なし→do/does/did を挿入（be・既存助動詞があるとき do は使わない）
++ JSONの厳守ルール（grading-prompt.md と同一）:
+- - 主語を問う wh では糸1を起動しない（語順そのまま・時制は本動詞の活用に乗せる）
++ - 文字列値はダブルクォートのみ使用（シングルクォート不可）
+- - 間接疑問では従属節の糸1を解除する（do を消し平叙語順）。疑問詞は節頭に保持
++ - nuance/note 内で英文・英単語を引用するときは『』を使い、ダブルクォート(")は使わない
+- - 複雑な関係詞修飾で疑問文を飾り立てない（瞬発訓練の阻害）
++ - 末尾カンマ禁止 / 生の改行禁止（必要なら \n）
+- 一意性ルール（最重要）:
++ 作問の絶対ルール（取りこぼし厳禁）:
+- - 出題日本語は、targetGap で指定した1つのスロットだけが答えになるよう、曖昧さなく書く
++ - 1文につき疑問詞は1つ（2つ同時に問わない）
+- - targetGap が when/where/why/how のときは answerSense も固定し、その意味に一意に収束する日本語にする
++ - 糸1（助動詞前置）は3機構を正しく使い分ける：本動詞が be→be前出 / 既存助動詞→それを前出 / 一般動詞で助動詞なし→do/does/did を挿入（be・既存助動詞があるとき do は使わない）
+-   （例：why で purpose を狙うなら「何のために」と書き、cause と混ざらないようにする）
++ - 主語を問う wh では糸1を起動しない（語順そのまま・時制は本動詞の活用に乗せる）
+- ```
++ - 間接疑問では従属節の糸1を解除する（do を消し平叙語順）。疑問詞は節頭に保持
+- 
++ - 複雑な関係詞修飾で疑問文を飾り立てない（瞬発訓練の阻害）
+- ### 7-3. User プロンプト（テンプレート）
++ 
+- 
++ 一意性ルール（最重要）:
+- ```
++ - 出題日本語は、targetGap で指定した1つのスロットだけが答えになるよう、曖昧さなく書く
+- 次の条件で疑問文ドリルを {{COUNT}} 問つくってください。
++ - targetGap が when/where/why/how のときは answerSense も固定し、その意味に一意に収束する日本語にする
+- 
++   （例：why で purpose を狙うなら「何のために」と書き、cause と混ざらないようにする）
+- - 対象STEP: {{STEPS}}            // 単一 or 集合（combined）。各問はこの集合からSTEPを割り当てる
++ ```
+- - STEP定義:
++ 
+-   {{STEP_DEFS}}                  // 選ばれたSTEPの「観点・例・対応軸」を structure-map §8-1 から抜粋して注入
++ ### 7-3. User プロンプト（テンプレート）
+- - 使用してよいシーン（彩り・話題は固定しない／毎問ランダムに1つ選ぶ）:
++ 
+-   {{SCENE_POOL}}                 // structure-map §9 の A/B/B'/C を注入
++ ```
+- - 時制は現在・過去・be・未来・現在完了の核5時制から各問に割り当てて散らす
++ 次の条件で疑問文ドリルを {{COUNT}} 問つくってください。
+- - 各問に必ず targetGap を設定。when/where/why/how は answerSense も設定
++ 
+- - STEP4（副詞wh）の問題は answerSentence（模範の答え文）も付ける
++ - 対象STEP: {{STEPS}}            // 単一 or 集合（combined）。各問はこの集合からSTEPを割り当てる
+- 
++ - STEP定義:
+- 返却形式（JSONのみ、{{COUNT}}要素の配列。各要素のスキーマは §5-1 と同一）:
++   {{STEP_DEFS}}                  // 選ばれたSTEPの「観点・例・対応軸」を structure-map §8-1 から抜粋して注入
+- [
++ - 使用してよいシーン（彩り・話題は固定しない／毎問ランダムに1つ選ぶ）:
+-   {
++   {{SCENE_POOL}}                 // structure-map §9 の A/B/B'/C を注入
+-     "id": "...", "step": 0, "sceneTag": "...", "functionTag": "...",
++ - 時制は現在・過去・be・未来・現在完了の核5時制から各問に割り当てて散らす
+-     "jp": "...", "targetGap": "...", "answerSense": null,
++ - 各問に必ず targetGap を設定。when/where/why/how は answerSense も設定
+-     "en": "...", "nuance": "...", "thread": "...", "answerSentence": null,
++ - STEP4（副詞wh）の問題は answerSentence（模範の答え文）も付ける
+-     "parts": [ { "role": "X|V|Y|Z", "text": "...", "note": "..." } ]
++ 
+-   }
++ 返却形式（JSONのみ、{{COUNT}}要素の配列。各要素のスキーマは §5-1 と同一）:
+- ]
++ [
+- 
++   {
+- nuance / note ルール:
++     "id": "...", "step": 0, "sceneTag": "...", "functionTag": "...",
+- - 模範解答がなぜその形になるかを 1〜2文で。語順・時制（どの助動詞を前に出したか／主語をたずねるwhでは助動詞を前に出さない 等）のうち該当点に触れる
++     "jp": "...", "targetGap": "...", "answerSense": null,
+- - why/how/when/where は answerSense（原因/目的・手段/様態・時点/節 等）にも1語触れる
++     "en": "...", "nuance": "...", "thread": "...", "answerSentence": null,
+- - **出力（nuance・parts[].note）には独自用語「糸／糸1／糸2」「X/Y/Z/V」を使わない。** 平易な日本語で書く（例: ×「糸1を解除し」→ ○「助動詞を前に出さず、ふつうの語順にして」／ ×「Zが文頭」→ ○「時を表す語句を文頭に置き」）。`role`/`thread` のコードはJSONフィールドにのみ残し、説明文には日常語を使う
++     "parts": [ { "role": "X|V|Y|Z", "text": "...", "note": "..." } ]
+- ```
++   }
+- 
++ ]
+- ### 7-4. 返却の後処理
++ 
+- 
++ nuance / note ルール:
+- - `[` prefill 前提でパース。要素数 = 5 を検証。
++ - 模範解答がなぜその形になるかを 1〜2文で。語順・時制（どの助動詞を前に出したか／主語をたずねるwhでは助動詞を前に出さない 等）のうち該当点に触れる
+- - §8 のバリデーションを通す。違反アイテムは除外し、不足分は再リクエスト（最大1回）。
++ - why/how/when/where は answerSense（原因/目的・手段/様態・時点/節 等）にも1語触れる
+- 
++ - **出力（nuance・parts[].note）には独自用語「糸／糸1／糸2」「X/Y/Z/V」を使わない。** 平易な日本語で書く（例: ×「糸1を解除し」→ ○「助動詞を前に出さず、ふつうの語順にして」／ ×「Zが文頭」→ ○「時を表す語句を文頭に置き」）。`role`/`thread` のコードはJSONフィールドにのみ残し、説明文には日常語を使う
+- ---
++ ```
+- ## 8. 不変条件のコード強制（生成後バリデーション）
++ ### 7-4. 返却の後処理
+- プロンプト遵守は確率的なので、ハードな不変条件は**コードで検証**する（NFR-6）。各アイテムに対し：
++ - `[` prefill 前提でパース。要素数 = 5 を検証。
+- 
++ - §8 のバリデーションを通す。違反アイテムは除外し、不足分は再リクエスト（最大1回）。
+- | 検査 | 条件 | 失敗時 |
++ 
+- |---|---|---|
++ ---
+- | 疑問詞は1つ | `en` 内の wh語が高々1つ（間接疑問の従属節whは別扱い） | 除外・再要求 |
++ 
+- | do挿入の排他 | `en` に「do/does/did + (be/既存助動詞)」の共起がない（×Do you can…） | 除外・再要求 |
++ ## 8. 不変条件のコード強制（生成後バリデーション）
+- | 主語whの糸1禁止 | `targetGap=subject` のとき先頭に do/be/助動詞の前置がない | 除外・再要求 |
++ 
+- | 間接の糸1解除 | step=6 の従属節が平叙語順（疑問詞直後に助動詞前置がない） | 除外・再要求 |
++ プロンプト遵守は確率的なので、ハードな不変条件は**コードで検証**する（NFR-6）。各アイテムに対し：
+- | 末尾は ? | `en` が `?` で終わる | 整形 |
++ 
+- | メタ必須 | `targetGap` 必須／when・where・why・how は `answerSense` 必須 | 除外・再要求 |
++ | 検査 | 条件 | 失敗時 |
+- | STEP整合 | `step` が selectedSteps に含まれる | 除外 |
++ |---|---|---|
+- 
++ | 疑問詞は1つ | `en` 内の wh語が高々1つ（間接疑問の従属節whは別扱い） | 除外・再要求 |
+- > 検査は構文ベースの軽量チェックでよい（完全な構文解析は不要）。目的は「明白な型崩れの排除」。
++ | do挿入の排他 | `en` に「do/does/did + (be/既存助動詞)」の共起がない（×Do you can…） | 除外・再要求 |
+- 
++ | 主語whの糸1禁止 | `targetGap=subject` のとき先頭に do/be/助動詞の前置がない | 除外・再要求 |
+- ---
++ | 間接の糸1解除 | step=6 の従属節が平叙語順（疑問詞直後に助動詞前置がない） | 除外・再要求 |
+- 
++ | 末尾は ? | `en` が `?` で終わる | 整形 |
+- ## 9. STEP定義の注入元（structure-map §8-1 ミラー）
++ | メタ必須 | `targetGap` 必須／when・where・why・how は `answerSense` 必須 | 除外・再要求 |
+- 
++ | STEP整合 | `step` が selectedSteps に含まれる | 除外 |
+- | STEP | 観点 | 糸 | targetGap候補 |
++ 
+- |---|---|---|---|
++ > 検査は構文ベースの軽量チェックでよい（完全な構文解析は不要）。目的は「明白な型崩れの排除」。
+- | 1 | Yes/No（糸1のみ・3機構） | 糸1 | yesno |
++ 
+- | 2 | wh・主語を聞く（糸2のみ） | 糸2 | subject |
++ ---
+- | 3 | wh・主語以外を聞く（糸1+糸2） | 糸1+糸2 | object/complement/when/where/why/how |
++ 
+- | 4 | 副詞wh＋答え文 | 糸1+糸2 | when/where/why/how（answerSense必須・answerSentence付与） |
++ ## 9. STEP定義の注入元（structure-map §8-1 ミラー）
+- | 5 | 限定詞型・前置詞残留 | 糸1+糸2 | which/what/whose+名詞・前置詞残留 |
++ 
+- | 6 | 間接疑問（糸1解除・二重疑問） | 糸1解除 | 従属節内のgap＋主節トリガー |
++ | STEP | 観点 | 糸 | targetGap候補 |
+- | 7 | 選択・否定疑問 | 糸1 | alternative/negative |
++ |---|---|---|---|
+- 
++ | 1 | Yes/No（糸1のみ・3機構） | 糸1 | yesno |
+- ---
++ | 2 | wh・主語を聞く（糸2のみ） | 糸2 | subject |
+- 
++ | 3 | wh・主語以外を聞く（糸1+糸2） | 糸1+糸2 | object/complement/when/where/why/how |
+- ## 10. MD出力仕様（1問ずつ・貼付プロンプト形式）★②
++ | 4 | 副詞wh＋答え文 | 糸1+糸2 | when/where/why/how（answerSense必須・answerSentence付与） |
+- 
++ | 5 | 限定詞型・前置詞残留 | 糸1+糸2 | which/what/whose+名詞・前置詞残留 |
+- **問題ごと**にMDを出力する（コピー主体。任意でダウンロード可）。出力MDは記録であると同時に、**そのままProjectsに貼るだけで添削が走る指示文**を内包する。指示は構造トレーナーの採点プロンプト（`grading-prompt.md` / `prompts/index.js buildCheckPrompt` の feedback設計）を平易化して内包し、次の3点をClaudeに解説させる。
++ | 6 | 間接疑問（糸1解除・二重疑問） | 糸1解除 | 従属節内のgap＋主節トリガー |
+- 
++ | 7 | 選択・否定疑問 | 糸1 | alternative/negative |
+- 1. 自分の回答の添削（文の組み立て＝語順・時制・助動詞・疑問詞の使い方に沿って、正誤を具体的に）
++ 
+- 2. 模範解答がなぜ正しいと言えるのか（語順・時制・表現の選択根拠を初学者向けに）
++ ---
+- 3. その他の表現方法（より自然な言い方・別解）
++ 
+- 
++ ## 10. MD出力仕様（1問ずつ・貼付プロンプト形式）★②
+- ファイル名（DL時）：`qt_step{step}_q{n}_{yyyymmdd-hhmm}.md`。**用語は平易表記**（糸/XYZ を出さない。§5-3で変換）。
++ 
+- 
++ **問題ごと**にMDを出力する（コピー主体。任意でダウンロード可）。出力MDは記録であると同時に、**そのままProjectsに貼るだけで添削が走る指示文**を内包する。指示は構造トレーナーの採点プロンプト（`grading-prompt.md` / `prompts/index.js buildCheckPrompt` の feedback設計）を平易化して内包し、次の3点をClaudeに解説させる。
+- ```markdown
++ 
+- # 疑問文トレーナー 添削依頼（1問）
++ 1. 自分の回答の添削（文の組み立て＝語順・時制・助動詞・疑問詞の使い方に沿って、正誤を具体的に）
+- 
++ 2. 模範解答がなぜ正しいと言えるのか（語順・時制・表現の選択根拠を初学者向けに）
+- あなたは英語教育の専門家です。下の1問について、日本語で次の3点を解説してください。
++ 3. その他の表現方法（より自然な言い方・別解）
+- 1. **私の回答の添削** — 文の組み立て方（語順・時制・助動詞の有無・疑問詞の使い方）に沿って、
++ ファイル名（DL時）：`qt_step{step}_q{n}_{yyyymmdd-hhmm}.md`。**用語は平易表記**（糸/XYZ を出さない。§5-3で変換）。
+-    正しい点と誤っている点を具体的に。誤りは「何が」「なぜ」「正しくはどうするか」をセットで。
++ 
+- 2. **模範解答がなぜ正しいのか** — 語順・時制・表現の選択根拠を、初学者にも分かる言葉で。
++ ```markdown
+-    私の回答との違いにも触れる。
++ # 疑問文トレーナー 添削依頼（1問）
+- 3. **その他の表現方法** — 同じ意味をより自然に言う別の言い方や、場面で使える言い換えがあれば。
++ 
+- 
++ あなたは英語教育の専門家です。下の1問について、日本語で次の3点を解説してください。
+- ---
++ 
+- 
++ 1. **私の回答の添削** — 文の組み立て方（語順・時制・助動詞の有無・疑問詞の使い方）に沿って、
+- ## 出題
++    正しい点と誤っている点を具体的に。誤りは「何が」「なぜ」「正しくはどうするか」をセットで。
+- {{jp}}
++ 2. **模範解答がなぜ正しいのか** — 語順・時制・表現の選択根拠を、初学者にも分かる言葉で。
+- 
++    私の回答との違いにも触れる。
+- ## 私の回答
++ 3. **その他の表現方法** — 同じ意味をより自然に言う別の言い方や、場面で使える言い換えがあれば。
+- {{attempt or （未入力）}}
++ 
+- 
++ ---
+- ## 模範解答
++ 
+- - 質問文: {{en}}
++ ## 出題
+- - 回答文: {{answerSentence or （この問題に回答文はありません）}}
++ {{jp}}
+- ## 参考（解説の手がかり・平易表記）
++ ## 私の回答
+- - 出題のねらい: {{targetGap を平易表記。例: 「いつ」をたずねる}}
++ {{attempt or （未入力）}}
+- - 模範解答のポイント: {{nuance（平易）}}
++ 
+- - 文の組み立て: {{parts を平易ラベルで「・名詞: you（主語）/ ・動詞: did buy（過去・do を前に）…」と整形}}
++ ## 模範解答
+- ```
++ - 質問文: {{en}}
+- 
++ - 回答文: {{answerSentence or （この問題に回答文はありません）}}
+- > 内部メタ（targetGap/answerSense/操作/構造分解）は**この参考ブロックに平易表記で**埋め込む。画面（§6-3）には出さない。ProjectsにはこのMDを貼るだけで、上の指示に従い3点の解説が返る。
++ 
+- 
++ ## 参考（解説の手がかり・平易表記）
+- ---
++ - 出題のねらい: {{targetGap を平易表記。例: 「いつ」をたずねる}}
+- 
++ - 模範解答のポイント: {{nuance（平易）}}
+- ## 11. 受け入れ条件（Acceptance Criteria）
++ - 文の組み立て: {{parts を平易ラベルで「・名詞: you（主語）/ ・動詞: did buy（過去・do を前に）…」と整形}}
+- 
++ ```
+- - [ ] STEP個別・総合（指定STEP集合からランダム）の両モードで5問を出題できる
++ 
+- - [ ] 出題フェーズで模範解答が見えない／答え合わせで一括開示される
++ > 内部メタ（targetGap/answerSense/操作/構造分解）は**この参考ブロックに平易表記で**埋め込む。画面（§6-3）には出さない。ProjectsにはこのMDを貼るだけで、上の指示に従い3点の解説が返る。
+- - [ ] 1セッションのClaude呼び出しが**1回**である（添削の別コールがない）
++ 
+- - [ ] 各問に targetGap が入り、when/where/why/how には answerSense が入る
++ ---
+- - [ ] §8 のバリデーションを全アイテムが通る（違反は除外/再要求される）
++ 
+- - [ ] STEP4で模範の答え文（回答文）が表示される
++ ## 11. 受け入れ条件（Acceptance Criteria）
+- - [ ] **①** 画面・MDのどこにも「糸／X/Y/Z/V」表記が出ない（内部コードは平易表記に変換）。`nuance`/`note` も平易
++ 
+- - [ ] **②** MDは**問題ごと**に出力でき、Projectsに貼るだけで「添削／模範の理由／その他表現」の3点解説が返る指示文を内包
++ - [ ] STEP個別・総合（指定STEP集合からランダム）の両モードで5問を出題できる
+- - [ ] **③** 答え合わせカードの表示は §6-3 の最小要素のみ（内部メタは非表示）
++ - [ ] 出題フェーズで模範解答が見えない／答え合わせで一括開示される
+- - [ ] APIキーがフロントに露出しない（GAS経由）
++ - [ ] 1セッションのClaude呼び出しが**1回**である（添削の別コールがない）
+- 
++ - [ ] 各問に targetGap が入り、when/where/why/how には answerSense が入る
+- ---
++ - [ ] §8 のバリデーションを全アイテムが通る（違反は除外/再要求される）
+- 
++ - [ ] STEP4で模範の答え文（回答文）が表示される
+- ## 12. スコープ外・将来（タグ付き）
++ - [ ] **①** 画面・MDのどこにも「糸／X/Y/Z/V」表記が出ない（内部コードは平易表記に変換）。`nuance`/`note` も平易
+- 
++ - [ ] **②** MDは**問題ごと**に出力でき、Projectsに貼るだけで「添削／模範の理由／その他表現」の3点解説が返る指示文を内包
+- - **瞬発ループ（速度計測・タイマー・無思考モード）** — 第2フェーズ。形になってから導入。
++ - [ ] **③** 答え合わせカードの表示は §6-3 の最小要素のみ（内部メタは非表示）
+- - **AI添削の内製** — v1はMD→デスクトップClaude運用。将来 grading-prompt.md 流用で追加可。
++ - [ ] APIキーがフロントに露出しない（GAS経由）
+- - **答え文の when/where 拡張詳細・what慣用** — structure-map 第2層。
++ 
+- - **how+α・pied-piping・受動疑問・backshift・仮定法系の問い** — 第2層。
++ ---
+- - **履歴/SRS（Sheets連携）** — v1はステートレス。
++ 
+- 
++ ## 12. スコープ外・将来（タグ付き）
+- ---
++ 
+- 
++ - **瞬発ループ（速度計測・タイマー・無思考モード）** — 第2フェーズ。形になってから導入。
+- ## 13. 確定事項（実装方針）
++ - **AI添削の内製** — v1はMD→デスクトップClaude運用。将来 grading-prompt.md 流用で追加可。
+- 
++ - **答え文の when/where 拡張詳細・what慣用** — structure-map 第2層。added_fm question-trainer-structure-map.md -> pj-2026-06-28-36ea
+
+- 1. **Claude APIキーは GAS で管理**：フロントは鍵を持たず、GASプロキシ経由でClaude APIを呼ぶ（NFR-4）。
++ - **how+α・pied-piping・受動疑問・backshift・仮定法系の問い** — 第2層。
+- 2. **生成は1コール・セット生成**：問題（日本語＋メタ）と模範解答＋根拠を**同一の1リクエストで一緒に生成**する（品質・トークンとも最適）。分割しない。表示のみ出題時／答え合わせ時の2段に分ける（UI制御）。
++ - **履歴/SRS（Sheets連携）** — v1はステートレス。
+- 3. **再生成は都度5問**：「次の5問」は毎回フル5問を新規生成（=毎回1コール）。先読みプールは持たない。
++ 
+- 4. **総合モードは完全ランダム**：指定STEP集合から各問のSTEPを完全ランダムに引く（均等配分しない）。
++ ---
++ 
++ ## 13. 確定事項（実装方針）
++ 
++ 1. **Claude APIキーは GAS で管理**：フロントは鍵を持たず、GASプロキシ経由でClaude APIを呼ぶ（NFR-4）。
++ 2. **生成は1コール・セット生成**：問題（日本語＋メタ）と模範解答＋根拠を**同一の1リクエストで一緒に生成**する（品質・トークンとも最適）。分割しない。表示のみ出題時／答え合わせ時の2段に分ける（UI制御）。
++ 3. **再生成は都度5問**：「次の5問」は毎回フル5問を新規生成（=毎回1コール）。先読みプールは持たない。
++ 4. **総合モードは完全ランダム**：指定STEP集合から各問のSTEPを完全ランダムに引く（均等配分しない）。
+--- question-trainer-structure-map.md
++++ question-trainer-structure-map.md (added_fm pj-2026-06-28-36ea)
+
+- # 疑問文トレーナー — 構造マップ & スコープ確定
++ ---
+- 
++ id: pj-2026-06-28-36ea
+- > **この文書の位置づけ**
++ aliases:
+- > English-Question-Trainer（仮称）の **設計の土台（single source of truth）**。
++ - pj-2026-06-28-36ea
+- > Cursor 向け work-request に展開する前段として、「疑問文・間接疑問文・答え文に、どんな分岐が存在するか」を MECE に把握し、各分岐に **第1層 / 第2層 / 除外** のスコープタグを振ることを目的とする。
++ title: 疑問文トレーナー — 構造マップ & スコープ確定
+- > **注意：これは"設計者が分岐を把握するための地図"であり、アプリに全分岐を MECE 実装する仕様ではない。** 初版は第1層のみを実装し、第2層は後追いする。
++ created: '2026-06-28'
+- 
++ ---
+- ---
++ # 疑問文トレーナー — 構造マップ & スコープ確定
+- ## 0. 設計の背骨（エッセンス）
++ > **この文書の位置づけ**
+- 
++ > English-Question-Trainer（仮称）の **設計の土台（single source of truth）**。
+- 疑問文は、平叙文に対する **2つの操作** に還元される。これ以上でも以下でもない。
++ > Cursor 向け work-request に展開する前段として、「疑問文・間接疑問文・答え文に、どんな分岐が存在するか」を MECE に把握し、各分岐に **第1層 / 第2層 / 除外** のスコープタグを振ることを目的とする。
+- 
++ > **注意：これは"設計者が分岐を把握するための地図"であり、アプリに全分岐を MECE 実装する仕様ではない。** 初版は第1層のみを実装し、第2層は後追いする。
+- - **糸1 = 助動詞を主語の前に出す**（Yes/No 疑問文の核）
++ 
+- - **糸2 = 空所を作り、疑問詞を文頭に移動する**（wh 疑問文の核）
++ ---
+- 3つの型は MECE に分かれる。
++ ## 0. 設計の背骨（エッセンス）
+- | 疑問文の型 | 使う操作 |
++ 疑問文は、平叙文に対する **2つの操作** に還元される。これ以上でも以下でもない。
+- |---|---|
++ 
+- | Yes/No | 糸1 のみ |
++ - **糸1 = 助動詞を主語の前に出す**（Yes/No 疑問文の核）
+- | wh（主語以外を聞く） | 糸1 + 糸2 |
++ - **糸2 = 空所を作り、疑問詞を文頭に移動する**（wh 疑問文の核）
+- | wh（主語を聞く） | 糸2 のみ（糸1 なし） |
++ 
+- 
++ 3つの型は MECE に分かれる。
+- **時制は独立軸ではなく、糸1のパラメータに畳み込まれる。** 時制が顔を出す場所は MECE に2つだけ。
++ 
+- 
++ | 疑問文の型 | 使う操作 |
+- | 時制が現れる場所 | どこに出るか | 例 |
++ |---|---|
+- |---|---|---|
++ | Yes/No | 糸1 のみ |
+- | 糸1がある文 | 前に出す助動詞の選択 | do/does/**did**/is/was/have/**had**/will/can… |
++ | wh（主語以外を聞く） | 糸1 + 糸2 |
+- | 糸1がない文（主語wh） | 裸の動詞の活用 | Who **broke** it?（過去）/ Who **breaks** it?（現在） |
++ | wh（主語を聞く） | 糸2 のみ（糸1 なし） |
+- → 訓練すべきは「24形すべて」ではなく、**①時制→助動詞の対応表**と**②主語疑問のときの動詞活用**の2点。
++ **時制は独立軸ではなく、糸1のパラメータに畳み込まれる。** 時制が顔を出す場所は MECE に2つだけ。
+- ---
++ | 時制が現れる場所 | どこに出るか | 例 |
+- 
++ |---|---|---|
+- ## 1. 直接疑問文 — 7軸の構造マップ
++ | 糸1がある文 | 前に出す助動詞の選択 | do/does/**did**/is/was/have/**had**/will/can… |
+- 
++ | 糸1がない文（主語wh） | 裸の動詞の活用 | Who **broke** it?（過去）/ Who **breaks** it?（現在） |
+- ### 軸の直交性（MECE宣言）
++ 
+- 
++ → 訓練すべきは「24形すべて」ではなく、**①時制→助動詞の対応表**と**②主語疑問のときの動詞活用**の2点。
+- - **軸1（答えの種類）・軸5（糸1の機構）・軸7（時制）は相互に直交**（自由に組合せ可）
++ 
+- - **軸2 → 軸3 → 軸4 は従属チェーン**（聞く対象が疑問詞の形と「前に出る単位」を縛る）
++ ---
+- - **軸6（主語か否か）は軸5を起動/解除するゲート**
++ 
+- 
++ ## 1. 直接疑問文 — 7軸の構造マップ
+- ---
++ 
+- 
++ ### 軸の直交性（MECE宣言）
+- ### 軸1【答えの種類】（MECE）
++ 
+- 
++ - **軸1（答えの種類）・軸5（糸1の機構）・軸7（時制）は相互に直交**（自由に組合せ可）
+- | 種類 | 答え | 操作 | 例 | 層 |
++ - **軸2 → 軸3 → 軸4 は従属チェーン**（聞く対象が疑問詞の形と「前に出る単位」を縛る）
+- |---|---|---|---|---|
++ - **軸6（主語か否か）は軸5を起動/解除するゲート**
+- | 真偽 (polar) | Yes/No | 糸1のみ | Did you buy it? | 第1層 |
++ 
+- | 情報 (content) | 具体情報 | 糸1±糸2 | What did you buy? | 第1層 |
++ ---
+- | 選択 (alternative) | 選択肢 | Yes/No + "or B" | Tea or coffee? | 第1層 |
++ 
+- 
++ ### 軸1【答えの種類】（MECE）
+- ---
++ 
+- 
++ | 種類 | 答え | 操作 | 例 | 層 |
+- ### 軸2【聞くスロット】（MECE＝文の5要素 S/V/O/C/M に対応・wh のみ）
++ |---|---|---|---|---|
+- 
++ | 真偽 (polar) | Yes/No | 糸1のみ | Did you buy it? | 第1層 |
+- | スロット | 疑問詞 | 層 |
++ | 情報 (content) | 具体情報 | 糸1±糸2 | What did you buy? | 第1層 |
+- |---|---|---|
++ | 選択 (alternative) | 選択肢 | Yes/No + "or B" | Tea or coffee? | 第1層 |
+- | S・O・C（名詞役X） | who / whom / what / which / whose | 第1層 |
++ 
+- | M（修飾＝副詞役Z） | when / where / why / how | 第1層 |
++ ---
+- | V（動詞そのもの） | 専用語なし → do の目的語として what で代用：What do you **do**? | 認識のみ |
++ 
+- 
++ ### 軸2【聞くスロット】（MECE＝文の5要素 S/V/O/C/M に対応・wh のみ）
+- > **気づき①：動詞を問う専用の疑問詞が英語に無い。** 「何をする？」は `do + what` の借用。出題設計の前提として把握する。
++ 
+- 
++ | スロット | 疑問詞 | 層 |
+- ---
++ |---|---|---|
+- 
++ | S・O・C（名詞役X） | who / whom / what / which / whose | 第1層 |
+- ### 軸3【疑問詞の形態】（MECE）
++ | M（修飾＝副詞役Z） | when / where / why / how | 第1層 |
+- 
++ | V（動詞そのもの） | 専用語なし → do の目的語として what で代用：What do you **do**? | 認識のみ |
+- | 型 | 中身 | 例 | 層 |
++ 
+- |---|---|---|---|
++ > **気づき①：動詞を問う専用の疑問詞が英語に無い。** 「何をする？」は `do + what` の借用。出題設計の前提として把握する。
+- | 代名詞型（単独で名詞スロット） | who, whom, what, which | What broke? | 第1層 |
++ 
+- | 限定詞型（名詞を引き連れる） | which/what/whose + 名詞 | **Which book** / **What time** / **Whose bag** | 第1層 |
++ ---
+- | 副詞型（単独でMスロット） | when, where, why, how | Where…? | 第1層 |
++ 
+- | 程度・数量型（how + α） | how old/many/much/often/long/far | **How many** books…? | 第2層 |
++ ### 軸3【疑問詞の形態】（MECE）
+- > **気づき②：how は原子ではない。** how+形容詞/副詞/数量詞で「句」を作り、一体で前に出る。
++ | 型 | 中身 | 例 | 層 |
+- > **気づき③：限定詞型（which/what/whose + 名詞）は前に出る単位が2語以上**になる。
++ |---|---|---|---|
+- 
++ | 代名詞型（単独で名詞スロット） | who, whom, what, which | What broke? | 第1層 |
+- ---
++ | 限定詞型（名詞を引き連れる） | which/what/whose + 名詞 | **Which book** / **What time** / **Whose bag** | 第1層 |
+- 
++ | 副詞型（単独でMスロット） | when, where, why, how | Where…? | 第1層 |
+- ### 軸4【糸2で前に出る単位の大きさ】（MECE）
++ | 程度・数量型（how + α） | how old/many/much/often/long/far | **How many** books…? | 第2層 |
+- | 大きさ | 例 | 層 |
++ > **気づき②：how は原子ではない。** how+形容詞/副詞/数量詞で「句」を作り、一体で前に出る。
+- |---|---|---|
++ > **気づき③：限定詞型（which/what/whose + 名詞）は前に出る単位が2語以上**になる。
+- | 単語 | **What** did you buy? | 第1層 |
++ 
+- | 疑問詞+名詞（限定詞型） | **Which book** did you read? | 第1層 |
++ ---
+- | 疑問詞+形容詞/副詞（程度型） | **How old** are you? | 第2層 |
++ 
+- | 前置詞残留 (stranding) | Who did you go **with**? | 第1層 |
++ ### 軸4【糸2で前に出る単位の大きさ】（MECE）
+- | 前置詞+疑問詞（引き連れ／pied-piping） | **With whom** did you go? | 第2層 |
++ 
+- 
++ | 大きさ | 例 | 層 |
+- > **気づき④：前置詞の引き連れ vs 残留。** 口語は残留が普通。フォーマルは引き連れ。
++ |---|---|---|
+- 
++ | 単語 | **What** did you buy? | 第1層 |
+- ---
++ | 疑問詞+名詞（限定詞型） | **Which book** did you read? | 第1層 |
+- 
++ | 疑問詞+形容詞/副詞（程度型） | **How old** are you? | 第2層 |
+- ### 軸5【糸1の機構】（MECE・3分岐 ＝ 実装で最重要）
++ | 前置詞残留 (stranding) | Who did you go **with**? | 第1層 |
+- 
++ | 前置詞+疑問詞（引き連れ／pied-piping） | **With whom** did you go? | 第2層 |
+- | 機構 | 起動条件 | 例 | 層 |
++ 
+- |---|---|---|---|
++ > **気づき④：前置詞の引き連れ vs 残留。** 口語は残留が普通。フォーマルは引き連れ。
+- | be動詞 | 本動詞が be | **Is** she happy? / **Was** he there? | 第1層 |
++ 
+- | 既存の助動詞 | have/will/can/be+ing 等がある | **Have** you eaten? / **Can** you swim? | 第1層 |
++ ---
+- | do挿入 (do-support) | 一般動詞で助動詞が無いときだけ | **Do/Does/Did** you run? | 第1層 |
++ 
+- 
++ ### 軸5【糸1の機構】（MECE・3分岐 ＝ 実装で最重要）
+- > **気づき⑤：do挿入は「助動詞が無いとき限定で起動する隠れ機構」。** be や既存助動詞があるときは do を使わない（×Do you can swim?）。
++ 
+- > 学習者の最頻出エラー源。生成時にこの3分岐を取り違えると壊れる。**糸1を1機構として扱わず、必ず3機構に割って生成する。**
++ | 機構 | 起動条件 | 例 | 層 |
+- 
++ |---|---|---|---|
+- ---
++ | be動詞 | 本動詞が be | **Is** she happy? / **Was** he there? | 第1層 |
+- 
++ | 既存の助動詞 | have/will/can/be+ing 等がある | **Have** you eaten? / **Can** you swim? | 第1層 |
+- ### 軸6【主語位置か否か】（糸1の有無を決定・MECE）
++ | do挿入 (do-support) | 一般動詞で助動詞が無いときだけ | **Do/Does/Did** you run? | 第1層 |
+- | | 糸1 | サブケース | 層 |
++ > **気づき⑤：do挿入は「助動詞が無いとき限定で起動する隠れ機構」。** be や既存助動詞があるときは do を使わない（×Do you can swim?）。
+- |---|---|---|---|
++ > 学習者の最頻出エラー源。生成時にこの3分岐を取り違えると壊れる。**糸1を1機構として扱わず、必ず3機構に割って生成する。**
+- | 主語以外を聞く | 起動 | — | 第1層 |
++ 
+- | 主語を聞く | 不起動（語順そのまま） | 代名詞型：Who broke it? ／ 限定詞型：**Which student** broke it? | 第1層（代名詞型）/ 第2層（限定詞型） |
++ ---
+- > **気づき⑥：主語wh でも determiner型（Which X）があり、名詞ごと主語位置に残ったまま糸1なし。**
++ ### 軸6【主語位置か否か】（糸1の有無を決定・MECE）
+- ---
++ | | 糸1 | サブケース | 層 |
+- 
++ |---|---|---|---|
+- ### 軸7【時制・態 ＝ 糸1のパラメータ】
++ | 主語以外を聞く | 起動 | — | 第1層 |
+- 
++ | 主語を聞く | 不起動（語順そのまま） | 代名詞型：Who broke it? ／ 限定詞型：**Which student** broke it? | 第1層（代名詞型）/ 第2層（限定詞型） |
+- 第1層の核時制：現在 (do/does)・過去 (did)・be (is/are/was/were)・未来 (will)・現在完了 (have/has)。
++ 
+- 拡張（第2層）：過去完了 (had)・完了進行・受動疑問（be+pp：**Was** it made by him?）。
++ > **気づき⑥：主語wh でも determiner型（Which X）があり、名詞ごと主語位置に残ったまま糸1なし。**
+- 主語wh のときだけ、時制は前に出る助動詞ではなく**裸動詞の活用**に乗る（Who **made** it? / Who **makes** it?）。
++ 
+- 
++ ---
+- ---
++ 
+- 
++ ### 軸7【時制・態 ＝ 糸1のパラメータ】
+- ## 2. 間接疑問文レイヤー（主節＋従属節）
++ 
+- 
++ 第1層の核時制：現在 (do/does)・過去 (did)・be (is/are/was/were)・未来 (will)・現在完了 (have/has)。
+- 直接疑問より **レイヤーが1段上がる**。感覚的に頻出するため初版に含める（複雑な関係詞修飾は別物として排除）。
++ 拡張（第2層）：過去完了 (had)・完了進行・受動疑問（be+pp：**Was** it made by him?）。
+- 
++ 主語wh のときだけ、時制は前に出る助動詞ではなく**裸動詞の活用**に乗る（Who **made** it? / Who **makes** it?）。
+- | 軸 | 内容 | 層 |
++ 
+- |---|---|---|
++ ---
+- | I 埋め込み元の型 | Yes/No→whether/if節 ／ wh→wh節 ／ 選択→whether A or B | 第1層 |
++ 
+- | II 従属節内の操作 | 糸2は**保持**（疑問詞は節頭）／ 糸1は**解除**（平叙語順 S-V、do挿入も消える） | 第1層 |
++ ## 2. 間接疑問文レイヤー（主節＋従属節）
+- | III 主節トリガー | 平叙：I know / I wonder / Tell me ／ 疑問：Do you know …? | 第1層 |
++ 
+- | IV 疑問詞+to不定詞（縮約形） | what to do / where to go / how to get to… | 第1層 |
++ 直接疑問より **レイヤーが1段上がる**。感覚的に頻出するため初版に含める（複雑な関係詞修飾は別物として排除）。
+- | V whether vs if | if＝口語・目的語位置／whether＝フォーマル・or not・to不定詞前・主語/補語 | 第2層 |
++ 
+- | VI 時制の一致 (backshift) | 主節が過去→従属節も過去へずれる（I asked what he **wanted**） | 第2層 |
++ | 軸 | 内容 | 層 |
+- 
++ |---|---|---|
+- > **気づき⑦：二重疑問構造。** 主節に糸1、従属節に糸1なし（Do you know **where the station is**?）。道聞きの主力。間接疑問を入れる以上、第1層級。
++ | I 埋め込み元の型 | Yes/No→whether/if節 ／ wh→wh節 ／ 選択→whether A or B | 第1層 |
+- > **気づき⑧：backshift は話法と接続。** 瞬発の主目的と別軸のため第2層。
++ | II 従属節内の操作 | 糸2は**保持**（疑問詞は節頭）／ 糸1は**解除**（平叙語順 S-V、do挿入も消える） | 第1層 |
+- > **気づき⑨：疑問詞+to不定詞は間接疑問の縮約。** how to get to… は旅行最頻出・低コスト。間接の入口として第1層。
++ | III 主節トリガー | 平叙：I know / I wonder / Tell me ／ 疑問：Do you know …? | 第1層 |
+- 
++ | IV 疑問詞+to不定詞（縮約形） | what to do / where to go / how to get to… | 第1層 |
+- **核心の罠（実装で必ず守る）**：従属節では糸1を**解除**する。
++ | V whether vs if | if＝口語・目的語位置／whether＝フォーマル・or not・to不定詞前・主語/補語 | 第2層 |
+- `What did he buy?` → `…what he **bought**`（did を消し、語順を平叙に戻す）。
++ | VI 時制の一致 (backshift) | 主節が過去→従属節も過去へずれる（I asked what he **wanted**） | 第2層 |
+- ---
++ > **気づき⑦：二重疑問構造。** 主節に糸1、従属節に糸1なし（Do you know **where the station is**?）。道聞きの主力。間接疑問を入れる以上、第1層級。
+- 
++ > **気づき⑧：backshift は話法と接続。** 瞬発の主目的と別軸のため第2層。
+- ## 3. 答え文機能 — 構造マップ
++ > **気づき⑨：疑問詞+to不定詞は間接疑問の縮約。** how to get to… は旅行最頻出・低コスト。間接の入口として第1層。
+- ### エッセンス：答え文を用意する価値があるのは「副詞役(Z)を聞く疑問詞」
++ **核心の罠（実装で必ず守る）**：従属節では糸1を**解除**する。
+- 
++ `What did he buy?` → `…what he **bought**`（did を消し、語順を平叙に戻す）。
+- | 種別 | 疑問詞 | 答えの中身 | 答えの作り方 |
++ 
+- |---|---|---|---|
++ ---
+- | 名詞役(X)を聞く | who / what / which / whose | 名詞1個 | スロットを埋めるだけ（産出スキル不要） |
++ 
+- | 副詞役(Z)を聞く | when / where / **why** / **how** | 副詞的要素 | 句・節を**構築する**（疑問文産出と同じスキル） |
++ ## 3. 答え文機能 — 構造マップ
+- → 答え文機能は本質的に **Zを聞く疑問詞ファミリー（when/where/why/how）** に向く。初版は why/how に限定。
++ ### エッセンス：答え文を用意する価値があるのは「副詞役(Z)を聞く疑問詞」
+- ---
++ | 種別 | 疑問詞 | 答えの中身 | 答えの作り方 |
+- 
++ |---|---|---|---|
+- ### 3-1. WHY の答え文
++ | 名詞役(X)を聞く | who / what / which / whose | 名詞1個 | スロットを埋めるだけ（産出スキル不要） |
+- 
++ | 副詞役(Z)を聞く | when / where / **why** / **how** | 副詞的要素 | 句・節を**構築する**（疑問文産出と同じスキル） |
+- **軸1【意味＝因果軸の向き】（whyのエッセンス・MECE）**
++ 
+- 
++ → 答え文機能は本質的に **Zを聞く疑問詞ファミリー（when/where/why/how）** に向く。初版は why/how に限定。
+- | 向き | 何を聞くか | 時間の向き | 典型の答え形 |
++ 
+- |---|---|---|---|
++ ---
+- | 原因・理由 | なぜ起きたか | 後ろ向き（過去因） | Because S V / Because of N |
++ 
+- | 目的 | 何のためか | 前向き（未来の意図） | To do / In order to / So that S V / For N |
++ ### 3-1. WHY の答え文
+- **軸2【答えの文法形式】（MECE・サイズ別）**
++ **軸1【意味＝因果軸の向き】（whyのエッセンス・MECE）**
+- | 形式 | 例 | 向き |
++ | 向き | 何を聞くか | 時間の向き | 典型の答え形 |
+- |---|---|---|
++ |---|---|---|---|
+- | 接続詞+節 | Because I was tired. / Since it's late. | 原因 |
++ | 原因・理由 | なぜ起きたか | 後ろ向き（過去因） | Because S V / Because of N |
+- | 前置詞+句 | Because of the rain. / Due to traffic. | 原因 |
++ | 目的 | 何のためか | 前向き（未来の意図） | To do / In order to / So that S V / For N |
+- | to不定詞 | To catch the train. | 目的 |
++ 
+- | so that 節 | So that I could pass the exam. | 目的 |
++ **軸2【答えの文法形式】（MECE・サイズ別）**
+- | for+名詞 | For my health. | 目的 |
++ 
+- | 副詞句単独 | Out of curiosity. | 原因（動機） |
++ | 形式 | 例 | 向き |
+- 
++ |---|---|---|
+- **Q↔A 対応**
++ | 接続詞+節 | Because I was tired. / Since it's late. | 原因 |
+- 
++ | 前置詞+句 | Because of the rain. / Due to traffic. | 原因 |
+- ```
++ | to不定詞 | To catch the train. | 目的 |
+- Why did you buy it?
++ | so that 節 | So that I could pass the exam. | 目的 |
+-   ├─[原因] Because it was on sale.        ← because節（過去）
++ | for+名詞 | For my health. | 目的 |
+-   └─[目的] To give it to my friend.       ← to不定詞（意図）
++ | 副詞句単独 | Out of curiosity. | 原因（動機） |
+- ```
++ 
+- 
++ **Q↔A 対応**
+- **周辺の気づき**
++ 
+- - **How come** は why と同義だが、唯一**糸1を起動しない**（平叙語順）：How come you're late?（×How come are you…）
++ ```
+- - **What … for?** も「目的のwhy」：What did you buy it **for**?（前置詞残留）
++ Why did you buy it?
+- - **Why not?** は省略疑問。提案応答に頻出。
++   ├─[原因] Because it was on sale.        ← because節（過去）
+- 
++   └─[目的] To give it to my friend.       ← to不定詞（意図）
+- ---
++ ```
+- ### 3-2. HOW の答え文（最も多義・要注意）
++ **周辺の気づき**
+- 
++ - **How come** は why と同義だが、唯一**糸1を起動しない**（平叙語順）：How come you're late?（×How come are you…）
+- **核心：how は1つの疑問詞ではなく、複数の別物が同じ綴りを共有するファミリー。** 意味軸は概ねMECEだが、bare how（手段／様態）は境界が滲む（→ 一意性問題に直結）。
++ - **What … for?** も「目的のwhy」：What did you buy it **for**?（前置詞残留）
+- 
++ - **Why not?** は省略疑問。提案応答に頻出。
+- **軸1【意味の種別】**
++ 
+- 
++ ---
+- | 種別 | 例 | 答えの形 | how+語か | 層 |
++ 
+- |---|---|---|---|---|
++ ### 3-2. HOW の答え文（最も多義・要注意）
+- | 手段・方法 (means) | How did you get here? | By bus. / By taking the train. | how単独 | 第1層 |
++ 
+- | 様態・やり方 (manner) | How did she sing? | Beautifully. / With great care. | how単独 | 第1層 |
++ **核心：how は1つの疑問詞ではなく、複数の別物が同じ綴りを共有するファミリー。** 意味軸は概ねMECEだが、bare how（手段／様態）は境界が滲む（→ 一意性問題に直結）。
+- | 状態・調子 (state) | How are you? | I'm fine. / Tired. | how単独 | 第1層 |
++ 
+- | 程度 (degree) | How old/tall/far? | 24. / 180 cm. | how+形/副 | 第2層 |
++ **軸1【意味の種別】**
+- | 数量 (quantity) | How many/much? | Three. / A lot. | how+量詞 | 第2層 |
++ 
+- | 頻度・期間 | How often/long? | Twice a week. / For two hours. | how+副 | 第2層 |
++ | 種別 | 例 | 答えの形 | how+語か | 層 |
+- | 感想・評価 | How was the trip? | It was great. | how単独 | 第1層 |
++ |---|---|---|---|---|
+- 
++ | 手段・方法 (means) | How did you get here? | By bus. / By taking the train. | how単独 | 第1層 |
+- **軸2【答えの文法形式】（MECE）**
++ | 様態・やり方 (manner) | How did she sing? | Beautifully. / With great care. | how単独 | 第1層 |
+- 
++ | 状態・調子 (state) | How are you? | I'm fine. / Tired. | how単独 | 第1層 |
+- | 形式 | 例 | 主な対応意味 |
++ | 程度 (degree) | How old/tall/far? | 24. / 180 cm. | how+形/副 | 第2層 |
+- |---|---|---|
++ | 数量 (quantity) | How many/much? | Three. / A lot. | how+量詞 | 第2層 |
+- | by + 名詞/動名詞 | By bus. / By studying daily. | 手段 |
++ | 頻度・期間 | How often/long? | Twice a week. / For two hours. | how+副 | 第2層 |
+- | with + 名詞 | With a knife. | 道具・手段 |
++ | 感想・評価 | How was the trip? | It was great. | how単独 | 第1層 |
+- | 様態副詞 | Carefully. / Quickly. | 様態 |
++ 
+- | 形容詞 | Fine. / Exhausted. | 状態 |
++ **軸2【答えの文法形式】（MECE）**
+- | 測定値・数量 | 180 cm. / Three times. | 程度・数量 |
++ 
+- | 命令文（手順・道案内） | Go straight and turn left. | how-to / 道聞き |
++ | 形式 | 例 | 主な対応意味 |
+- 
++ |---|---|---|
+- **周辺の気づき**
++ | by + 名詞/動名詞 | By bus. / By studying daily. | 手段 |
+- - **how-question は命令文で答えることが多い**（How do I get to the station? → Go straight…）。道聞きの主力。who/what では起きない非対称。
++ | with + 名詞 | With a knife. | 道具・手段 |
+- - **How to do X** は間接疑問の縮約（気づき⑨）。"Could you tell me how to get there?"
++ | 様態副詞 | Carefully. / Quickly. | 様態 |
+- - **How about / What about** は提案。形式が違う（how + 名詞/動名詞）。
++ | 形容詞 | Fine. / Exhausted. | 状態 |
+- 
++ | 測定値・数量 | 180 cm. / Three times. | 程度・数量 |
+- ---
++ | 命令文（手順・道案内） | Go straight and turn left. | how-to / 道聞き |
+- ### 3-3. how/why 以外に答え文を設ける価値があるもの
++ **周辺の気づき**
+- 
++ - **how-question は命令文で答えることが多い**（How do I get to the station? → Go straight…）。道聞きの主力。who/what では起きない非対称。
+- | 疑問詞 | 答え文の価値 | 理由 | 推奨 |
++ - **How to do X** は間接疑問の縮約（気づき⑨）。"Could you tell me how to get there?"
+- |---|---|---|---|
++ - **How about / What about** は提案。形式が違う（how + 名詞/動名詞）。
+- | why / how | 高 | 答えが必ず句・節の構築 | 第1層（初版） |
++ 
+- | when | 中 | 答えが時の副詞節になりうる（After I eat. / When I get home.） | 第2層 |
++ ---
+- | where | 中 | 答えが場所の句/関係副詞節（At the corner. / Where the road ends.） | 第2層 |
++ 
+- | what（慣用） | 中〜高 | 下記の定型は答えが構造を持つ | 第2層（特例） |
++ ### 3-3. how/why 以外に答え文を設ける価値があるもの
+- | who / which / whose | 低 | 答えは名詞スロット埋めのみ | 設けない |
++ 
+- 
++ | 疑問詞 | 答え文の価値 | 理由 | 推奨 |
+- **what の慣用パターン（答えが構造を持つ特例・第2層）**
++ |---|---|---|---|
+- 
++ | why / how | 高 | 答えが必ず句・節の構築 | 第1層（初版） |
+- | 疑問 | 答えの構造 | 場面 |
++ | when | 中 | 答えが時の副詞節になりうる（After I eat. / When I get home.） | 第2層 |
+- |---|---|---|
++ | where | 中 | 答えが場所の句/関係副詞節（At the corner. / Where the road ends.） | 第2層 |
+- | What do you **do**? | I'm a / I work as… | 自己紹介 |
++ | what（慣用） | 中〜高 | 下記の定型は答えが構造を持つ | 第2層（特例） |
+- | What is it **like**? | It's + 形容詞/描写 | 描写 |
++ | who / which / whose | 低 | 答えは名詞スロット埋めのみ | 設けない |
+- | What is it **made of**? | (It's made) of wood. | 物の説明 |
++ 
+- | What … **for**? | To do …（＝目的why） | 目的 |
++ **what の慣用パターン（答えが構造を持つ特例・第2層）**
+- → when/where を入れると、Zを聞く疑問詞4つ（when/where/why/how）が答え文ファミリーとして MECE に揃う。設計上はこの4つを「答え文あり」、who/what/which/whose を「答え文なし（名詞スロット）」と二分するのが最もきれい。
++ | 疑問 | 答えの構造 | 場面 |
+- 
++ |---|---|---|
+- ---
++ | What do you **do**? | I'm a / I work as… | 自己紹介 |
+- 
++ | What is it **like**? | It's + 形容詞/描写 | 描写 |
+- ## 4. 一意性担保メタデータ仕様
++ | What is it **made of**? | (It's made) of wood. | 物の説明 |
+- 
++ | What … **for**? | To do …（＝目的why） | 目的 |
+- 出題日本語が複数の妥当な英文を許すと、模範解答が割れて採点が破綻する。これを防ぐため各問にメタデータを固定する。
++ 
+- 
++ → when/where を入れると、Zを聞く疑問詞4つ（when/where/why/how）が答え文ファミリーとして MECE に揃う。設計上はこの4つを「答え文あり」、who/what/which/whose を「答え文なし（名詞スロット）」と二分するのが最もきれい。
+- | フィールド | 役割 | 値の例 | 適用 |
++ 
+- |---|---|---|---|
++ ---
+- | `targetGap` | 聞くスロットを固定 | subject / object / complement / when / where / why / how / yesno | 全疑問文 |
++ 
+- | `answerSense` | why/how の答えセンスを固定 | cause / purpose（why）／ means / manner / state / degree（how） | **why・how の答え文のみ** |
++ ## 4. 一意性担保メタデータ仕様
+- > **本命の気づき：why/how の疑問文は単体では答えの形を一意に決めない。**
++ 出題日本語が複数の妥当な英文を許すと、模範解答が割れて採点が破綻する。これを防ぐため各問にメタデータを固定する。
+- > ```
++ 
+- > Why did you go to the store?
++ | フィールド | 役割 | 値の例 | 適用 |
+- >   → Because I was hungry.（原因）   ← 両方とも正解
++ |---|---|---|---|
+- >   → To buy some milk.（目的）        ← どちらも文法的に妥当
++ | `targetGap` | 聞くスロットを固定 | subject / object / complement / when / where / why / how / yesno | 全疑問文 |
+- > ```
++ | `answerSense` | why/how の答えセンスを固定 | cause / purpose（why）／ means / manner / state / degree（how） | **why・how の答え文のみ** |
+- > 答え文を用意するなら、ペア作成時に `answerSense` を必ず固定する。これが今回最大の考慮漏れ防止ポイント。
++ 
+- 
++ > **本命の気づき：why/how の疑問文は単体では答えの形を一意に決めない。**
+- ---
++ > ```
+- 
++ > Why did you go to the store?
+- ## 5. スコープ確定表（総覧）
++ >   → Because I was hungry.（原因）   ← 両方とも正解
+- 
++ >   → To buy some milk.（目的）        ← どちらも文法的に妥当
+- ### 第1層（初版で実装）
++ > ```
+- 
++ > 答え文を用意するなら、ペア作成時に `answerSense` を必ず固定する。これが今回最大の考慮漏れ防止ポイント。
+- - **疑問文の型**：Yes/No・wh(非主語)・wh(主語) ／ 選択疑問・否定疑問
++ 
+- - **糸1の3機構**：be / 既存助動詞 / do挿入（必ず3分岐で生成）
++ ---
+- - **疑問詞**：who/whom/what/which/whose/when/where/why/how（単独）＋ 限定詞型（which/what/whose+名詞）
++ 
+- - **前置詞**：残留 (stranding)
++ ## 5. スコープ確定表（総覧）
+- - **時制**：現在・過去・be・未来・現在完了
++ 
+- - **間接疑問**：埋め込み3型／従属節の糸1解除／二重疑問構造／疑問詞+to不定詞
++ ### 第1層（初版で実装）
+- - **答え文**：why（原因/目的）・how（手段/様態/状態/感想）
++ 
+- - **メタデータ**：`targetGap` ＋ `answerSense`
++ - **疑問文の型**：Yes/No・wh(非主語)・wh(主語) ／ 選択疑問・否定疑問
+- 
++ - **糸1の3機構**：be / 既存助動詞 / do挿入（必ず3分岐で生成）
+- ### 第2層（後追い）
++ - **疑問詞**：who/whom/what/which/whose/when/where/why/how（単独）＋ 限定詞型（which/what/whose+名詞）
+- 
++ - **前置詞**：残留 (stranding)
+- - how+α（程度/数量/頻度）／ pied-piping（前置詞引き連れ）／ 受動疑問
++ - **時制**：現在・過去・be・未来・現在完了
+- - 過去完了・完了進行
++ - **間接疑問**：埋め込み3型／従属節の糸1解除／二重疑問構造／疑問詞+to不定詞
+- - 主語wh の限定詞型
++ - **答え文**：why（原因/目的）・how（手段/様態/状態/感想）
+- - 間接疑問：whether/if の使い分け・backshift（時制の一致）
++ - **メタデータ**：`targetGap` ＋ `answerSense`
+- - 答え文：when・where／ what 慣用（do/like/made of/for）dry-run: wrote 15 planned assignments -> /Users/naoya.k/git/batch1-migrate/English-Question-Trainer/migration/dry-run-02-assignments.jsonl
+
++ 
+- 
++ ### 第2層（後追い）
+- ### 除外
++ 
+- 
++ - how+α（程度/数量/頻度）／ pied-piping（前置詞引き連れ）／ 受動疑問
+- - 付加疑問文（…, isn't it?）— 産出ロジックが別物（平叙文＋確認タグ）
++ - 過去完了・完了進行
+- - 修辞疑問文
++ - 主語wh の限定詞型
+- - 間接疑問が主節の主語/補語（What he wants is…）— 関係詞的複雑度・目的外
++ - 間接疑問：whether/if の使い分け・backshift（時制の一致）
+- 
++ - 答え文：when・where／ what 慣用（do/like/made of/for）
+- ---
++ 
+- 
++ ### 除外
+- ## 6. 産出の意思決定ツリー（取りこぼし防止）
++ 
+- 
++ - 付加疑問文（…, isn't it?）— 産出ロジックが別物（平叙文＋確認タグ）
+- 生成ロジックを実装するときの分岐順。各ノードで上のスコープタグを参照する。
++ - 修辞疑問文
+- 
++ - 間接疑問が主節の主語/補語（What he wants is…）— 関係詞的複雑度・目的外
+- ```
++ 
+- 平叙文の意味を確定
++ ---
+- │
++ 
+- ├─【答えの種類は？】（軸1）
++ ## 6. 産出の意思決定ツリー（取りこぼし防止）
+- │   ├─ 真偽   → Yes/No（糸1のみ）→ 軸5へ
++ 
+- │   ├─ 選択   → Yes/No + "or B" → 軸5へ
++ 生成ロジックを実装するときの分岐順。各ノードで上のスコープタグを参照する。
+- │   └─ 情報   → wh（軸2へ）
++ 
+- │
++ ```
+- ├─【何を聞く？】（軸2：S/V/O/C/M）
++ 平叙文の意味を確定
+- │   ├─ 名詞役(X: S/O/C) → who/what/which/whose
++ │
+- │   └─ 副詞役(Z: M)      → when/where/why/how
++ ├─【答えの種類は？】（軸1）
+- │        └─ 動詞(V)を聞く → do+what で借用（気づき①）
++ │   ├─ 真偽   → Yes/No（糸1のみ）→ 軸5へ
+- │
++ │   ├─ 選択   → Yes/No + "or B" → 軸5へ
+- ├─【主語を聞く？】（軸6＝糸1ゲート）
++ │   └─ 情報   → wh（軸2へ）
+- │   ├─ YES → 糸2のみ・糸1なし・語順そのまま（時制は裸動詞に乗る）
++ │
+- │   └─ NO  → 糸1 + 糸2
++ ├─【何を聞く？】（軸2：S/V/O/C/M）
+- │
++ │   ├─ 名詞役(X: S/O/C) → who/what/which/whose
+- ├─【糸1の機構は？】（軸5・必ず3分岐）
++ │   └─ 副詞役(Z: M)      → when/where/why/how
+- │   ├─ 本動詞が be        → be を前出
++ │        └─ 動詞(V)を聞く → do+what で借用（気づき①）
+- │   ├─ 既存助動詞あり      → それを前出（×do）
++ │
+- │   └─ 一般動詞・助動詞なし → do/does/did を挿入
++ ├─【主語を聞く？】（軸6＝糸1ゲート）
+- │
++ │   ├─ YES → 糸2のみ・糸1なし・語順そのまま（時制は裸動詞に乗る）
+- ├─【前出する単位は？】（軸3→4）
++ │   └─ NO  → 糸1 + 糸2
+- │   ├─ 単語 / 限定詞型(+名詞) / 程度型(how+α)
++ │
+- │   └─ 前置詞：残留 or 引き連れ
++ ├─【糸1の機構は？】（軸5・必ず3分岐）
+- │
++ │   ├─ 本動詞が be        → be を前出
+- └─【間接疑問にする？】
++ │   ├─ 既存助動詞あり      → それを前出（×do）
+-     ├─ NO → 直接疑問で確定
++ │   └─ 一般動詞・助動詞なし → do/does/did を挿入
+-     └─ YES→ 主節トリガー付与 ＋ 従属節の糸1を解除（do消す・平叙語順）
++ │
+-               └─ 縮約するなら 疑問詞+to不定詞
++ ├─【前出する単位は？】（軸3→4）
+- ```
++ │   ├─ 単語 / 限定詞型(+名詞) / 程度型(how+α)
+- 
++ │   └─ 前置詞：残留 or 引き連れ
+- ---
++ │
+- 
++ └─【間接疑問にする？】
+- ## 7. 既知の生成制約（不変条件）
++     ├─ NO → 直接疑問で確定
+- 
++     └─ YES→ 主節トリガー付与 ＋ 従属節の糸1を解除（do消す・平叙語順）
+- - **1文1疑問詞**：2つ同時に聞けない（×What who did he give?）。生成時に強制。
++               └─ 縮約するなら 疑問詞+to不定詞
+- - **do挿入の排他性**：be・既存助動詞があるとき do を使わない。
++ ```
+- - **主語wh の糸1禁止**：Who/Which X が主語のとき助動詞前置をしない。
++ 
+- - **間接疑問の糸1解除**：従属節は平叙語順。do を残さない。
++ ---
+- - **ハードな不変条件はコードで強制**（確率的プロンプト依存にしない）：1文1疑問詞・糸1の3分岐・主語wh の糸1禁止・従属節の糸1解除。
++ 
+- 
++ ## 7. 既知の生成制約（不変条件）
+- ---
++ 
+- 
++ - **1文1疑問詞**：2つ同時に聞けない（×What who did he give?）。生成時に強制。
+- ## 8. 用語集
++ - **do挿入の排他性**：be・既存助動詞があるとき do を使わない。
+- 
++ - **主語wh の糸1禁止**：Who/Which X が主語のとき助動詞前置をしない。
+- | 用語 | 定義 |
++ - **間接疑問の糸1解除**：従属節は平叙語順。do を残さない。
+- |---|---|
++ - **ハードな不変条件はコードで強制**（確率的プロンプト依存にしない）：1文1疑問詞・糸1の3分岐・主語wh の糸1禁止・従属節の糸1解除。
+- | 糸1 | 助動詞を主語の前に出す操作（Yes/No 疑問文の核） |
++ 
+- | 糸2 | 空所を作り疑問詞を文頭に移動する操作（wh 疑問文の核） |
++ ---
+- | do挿入 (do-support) | 一般動詞で助動詞が無いとき do/does/did を補う機構 |
++ 
+- | 限定詞型wh | which/what/whose + 名詞（前出単位が2語以上） |
++ ## 8. 用語集
+- | pied-piping | 前置詞を疑問詞と一緒に前出（With whom…） |
++ 
+- | stranding | 前置詞を元位置に残す（…with?） |
++ | 用語 | 定義 |
+- | 二重疑問構造 | 主節に糸1・従属節に糸1なしの間接疑問（Do you know where it is?） |
++ |---|---|
+- | backshift | 主節過去に合わせ従属節も過去へずれる時制の一致 |
++ | 糸1 | 助動詞を主語の前に出す操作（Yes/No 疑問文の核） |
+- | `targetGap` | 聞くスロットを固定する出題メタデータ |
++ | 糸2 | 空所を作り疑問詞を文頭に移動する操作（wh 疑問文の核） |
+- | `answerSense` | why/how の答えセンス（原因/目的・手段/様態…）を固定するメタデータ |
++ | do挿入 (do-support) | 一般動詞で助動詞が無いとき do/does/did を補う機構 |
++ | 限定詞型wh | which/what/whose + 名詞（前出単位が2語以上） |
++ | pied-piping | 前置詞を疑問詞と一緒に前出（With whom…） |
++ | stranding | 前置詞を元位置に残す（…with?） |
++ | 二重疑問構造 | 主節に糸1・従属節に糸1なしの間接疑問（Do you know where it is?） |
++ | backshift | 主節過去に合わせ従属節も過去へずれる時制の一致 |
++ | `targetGap` | 聞くスロットを固定する出題メタデータ |
++ | `answerSense` | why/how の答えセンス（原因/目的・手段/様態…）を固定するメタデータ |

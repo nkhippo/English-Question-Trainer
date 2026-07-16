@@ -1,3 +1,10 @@
+---
+id: pj-2026-06-28-bf21
+aliases:
+- pj-2026-06-28-bf21
+title: Cursor Work-Request — English-Question-Trainer 新規構築
+created: '2026-06-28'
+---
 # Cursor Work-Request — English-Question-Trainer 新規構築
 
 > **リポジトリ**: https://github.com/nkhippo/English-Question-Trainer

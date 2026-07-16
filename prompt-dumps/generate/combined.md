@@ -1,3 +1,10 @@
+---
+id: pj-2026-06-28-9fb9
+aliases:
+- pj-2026-06-28-9fb9
+title: 総合モード例 — 問題生成
+created: '2026-06-28'
+---
 # 総合モード例 — 問題生成
 
 - 生成元: `buildGeneratePrompt()`

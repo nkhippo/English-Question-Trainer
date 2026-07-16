@@ -1,0 +1,46 @@
+rewrite FIX_WORK_REPORT.md (md=0 wiki=0 fm=0)
+rewrite README.md (md=0 wiki=0 fm=0)
+rewrite SPEC2_WORK_REPORT.md (md=0 wiki=0 fm=0)
+rewrite prompt-dumps/README.md (md=0 wiki=0 fm=0)
+rewrite prompt-dumps/generate/combined.md (md=0 wiki=0 fm=0)
+rewrite prompt-dumps/generate/step1.md (md=0 wiki=0 fm=0)
+rewrite prompt-dumps/generate/step2.md (md=0 wiki=0 fm=0)
+rewrite prompt-dumps/generate/step3.md (md=0 wiki=0 fm=0)
+rewrite prompt-dumps/generate/step4.md (md=0 wiki=0 fm=0)
+rewrite prompt-dumps/generate/step5.md (md=0 wiki=0 fm=0)
+rewrite prompt-dumps/generate/step6.md (md=0 wiki=0 fm=0)
+rewrite prompt-dumps/generate/step7.md (md=0 wiki=0 fm=0)
+rewrite question-trainer-cursor-work-request.md (md=0 wiki=0 fm=0)
+rewrite question-trainer-requirements-design.md (md=0 wiki=0 fm=0)
+rewrite question-trainer-structure-map.md (md=0 wiki=0 fm=0)
+dry-run totals: {'markdown_link': 0, 'wikilink': 0, 'frontmatter': 0}; broken=0
+=== FIX_WORK_REPORT.md ===
+changes: md_link=0 wikilink=0 frontmatter=0
+=== README.md ===
+changes: md_link=0 wikilink=0 frontmatter=0
+=== SPEC2_WORK_REPORT.md ===
+changes: md_link=0 wikilink=0 frontmatter=0
+=== prompt-dumps/README.md ===
+changes: md_link=0 wikilink=0 frontmatter=0
+=== prompt-dumps/generate/combined.md ===
+changes: md_link=0 wikilink=0 frontmatter=0
+=== prompt-dumps/generate/step1.md ===
+changes: md_link=0 wikilink=0 frontmatter=0
+=== prompt-dumps/generate/step2.md ===
+changes: md_link=0 wikilink=0 frontmatter=0
+=== prompt-dumps/generate/step3.md ===
+changes: md_link=0 wikilink=0 frontmatter=0
+=== prompt-dumps/generate/step4.md ===
+changes: md_link=0 wikilink=0 frontmatter=0
+=== prompt-dumps/generate/step5.md ===
+changes: md_link=0 wikilink=0 frontmatter=0
+=== prompt-dumps/generate/step6.md ===
+changes: md_link=0 wikilink=0 frontmatter=0
+=== prompt-dumps/generate/step7.md ===
+changes: md_link=0 wikilink=0 frontmatter=0
+=== question-trainer-cursor-work-request.md ===
+changes: md_link=0 wikilink=0 frontmatter=0
+=== question-trainer-requirements-design.md ===
+changes: md_link=0 wikilink=0 frontmatter=0
+=== question-trainer-structure-map.md ===
+changes: md_link=0 wikilink=0 frontmatter=0

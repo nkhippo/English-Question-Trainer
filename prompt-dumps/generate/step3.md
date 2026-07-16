@@ -1,3 +1,10 @@
+---
+id: pj-2026-06-28-f7cc
+aliases:
+- pj-2026-06-28-f7cc
+title: Step 3 — 問題生成
+created: '2026-06-28'
+---
 # Step 3 — 問題生成
 
 - 生成元: `buildGeneratePrompt()` in `src/prompts/generate.js`
