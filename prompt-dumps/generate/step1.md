@@ -1,3 +1,10 @@
+---
+id: pj-2026-06-28-3236
+aliases:
+- pj-2026-06-28-3236
+title: Step 1 — 問題生成
+created: '2026-06-28'
+---
 # Step 1 — 問題生成
 
 - 生成元: `buildGeneratePrompt()` in `src/prompts/generate.js`
